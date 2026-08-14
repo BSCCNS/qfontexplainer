@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Quantum Compass</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="description" content="Quantum Compass — companion screen for the installation. Creative Intelligence Lab, Barcelona Supercomputing Center." />
+    <link rel="icon" href="assets/logo.svg" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <!--
+      The whole site is one fixed 2227.5 x 3960 canvas, scaled to fit the
+      display. Screens are built by js/app.js from js/content.js — there is no
+      user-facing text in this file on purpose, so translation never means
+      touching markup.
+
+      Loaded as classic scripts rather than ES modules so the page runs from
+      file:// with no web server at all. See README.md.
+    -->
+    <div class="viewport">
+      <div class="stage" id="stage"></div>
+    </div>
+
+    <script src="js/content.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

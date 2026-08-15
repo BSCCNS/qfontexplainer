@@ -25,10 +25,10 @@ local file with no web server, no ports and no background service.
 index.html            markup shell — deliberately contains no user-facing text
 css/styles.css        all styling; every value is a literal Figma pixel
 js/content.js         ALL copy, all three languages — the only file translators touch
-js/app.js             rendering, navigation, language, kiosk hardening
-assets/               logo, chevron, seven slide illustrations, About mark
+js/app.js             rendering, navigation, language, screensaver, kiosk hardening
+assets/               logo, chevron, illustrations, cat, logo lockup
 fonts/                drop licensed .woff2 files here (see fonts/README.md)
-tools/                re-export illustrations from Figma
+tools/                sync copy and re-export/animate artwork from Figma
 ```
 
 All artwork is exported straight from Figma — nothing is hand-drawn. If the
@@ -39,10 +39,45 @@ export FIGMA_TOKEN=figd_xxx        # Figma → Settings → Security
 ./tools/export-illustrations.sh
 ```
 
-It overwrites all seven slide illustrations plus the About mark, with no code
-change needed. The Figma node ids are recorded in the script. Note this uses
-the Figma **REST API**, which has a separate quota from the MCP/plugin
-integration — so it keeps working when the editor integration is rate-limited.
+It overwrites all seven slide illustrations, the cat, the About mark and the
+logo lockup, with no code change needed. The Figma node ids are recorded in the
+script.
+
+### If the export is rate-limited
+
+The REST API has a modest quota that repeated exports exhaust, and it returns
+`429 Rate limit exceeded` for a while afterwards. Exporting from the **Figma
+app** does not use that quota at all, so you can always fall back to it:
+
+1. In Figma, select the illustration group inside a screen — the drawing
+   itself, *not* the whole `Experimento N` frame (the site draws the text,
+   arrows and header itself).
+2. In the right-hand **Export** panel choose **SVG**, then export.
+3. Repeat for all seven, plus `Group 82` (the cat), into one folder.
+4. Run:
+
+```sh
+./tools/import-manual-export.py ~/Downloads/figma-export
+```
+
+Filenames do not matter. The script identifies each file by what is inside it
+(embedded bitmap, wave gradients, path count), prints what it decided so you
+can check, strips Figma's canvas-coloured background rect, files everything
+under the right name and re-applies the wavefront animation. Add `--dry-run`
+to see the mapping without writing anything.
+
+Three of the slides are told apart by comparing them against each other
+(slide 3 vs 4, 6 vs 7, 1 vs 5), so export both members of a pair together — on
+its own, the script will say it cannot tell which is which rather than guess.
+
+To check whether the Spanish copy has drifted from Figma:
+
+```sh
+./tools/sync-text.py               # reports exactly which strings changed
+```
+
+It never rewrites `content.js` automatically, because the English and Catalan
+sit alongside the Spanish and would silently go stale.
 
 ---
 
@@ -99,6 +134,39 @@ right viewport and the layout scales correctly on its own.
 
 ---
 
+## Behaviour
+
+**Navigation.** The logo, top-left on every screen, is the home button. Slides
+also have prev/next chevrons; the About screen relies on the logo alone.
+
+**Screensaver.** After two minutes of inactivity an attract loop takes over:
+the diffraction video full-bleed with the two institutional logos at the
+bottom (Figma "Group 81"). Any touch dismisses it and returns to the home
+screen, so every visitor starts from the same place rather than halfway
+through what the last person was reading.
+
+Tune the delay without editing `app.js` by setting a global before it loads,
+in `index.html`:
+
+```html
+<script>window.QC_IDLE_MS = 90000;</script>   <!-- 90 seconds -->
+```
+
+**Animated wavefronts.** On slides 3 and 4 the gold arcs pulse outward from
+each slit. The animation is CSS living *inside* the SVG files, not in the page:
+an SVG loaded through `<img>` still runs declarative animation, so this needs
+no JavaScript, no `fetch()`, and does not disturb the `file://` deployment.
+
+Because `export-illustrations.sh` overwrites the artwork, the animation is
+re-applied afterwards by `tools/animate-illustrations.py` (the export script
+calls it automatically). That script derives the geometry — how many wavefront
+sets there are and the point each expands from — by solving from the arc
+bounding boxes, so the artwork can be redrawn in Figma and re-exported without
+anyone editing code. Run `./tools/animate-illustrations.py --check` to verify
+the committed SVGs are up to date.
+
+---
+
 ## How the layout works
 
 Everything is authored at the Figma canvas size — **2227.5 × 3960**, a 9:16
@@ -141,31 +209,45 @@ organisation's own official wording rather than a translation.
 
 ### 3. Videos
 
-`assets/video/immigrant.mp4` and `expat.mp4` are not present yet. Each panel
-falls back to showing its label, so the layout stays reviewable. Encode as
-H.264 — see `assets/video/README.md` for the reasoning and an ffmpeg command.
+Three files are still missing:
 
-### 4. Institutional logos
+| File | Used by | Fallback while absent |
+|---|---|---|
+| `assets/video/immigrant.mp4` | home screen, left panel | panel shows its label |
+| `assets/video/expat.mp4` | home screen, right panel | panel shows its label |
+| `assets/video/screensaver.mp4` | attract loop | still poster image |
 
-The About footer currently shows the two organisation names as plain text
-placeholders. Replace them in `buildAbout()` in `js/app.js` once the real logo
-files are supplied.
+Encode as H.264 — see `assets/video/README.md` for the reasoning and an ffmpeg
+command.
+
+### 4. Slide 1 body height — font-dependent
+
+Slide 1 carries the longest body copy. In Figma it ends 44px above the
+illustration; rendered here with the *fallback* font it runs about 120px
+taller and its box overlaps the illustration's. There is no visible collision
+(the text sits well to the left of any drawn artwork), but the margin is gone.
+
+This is the clearest measurable symptom of the font substitution. Re-check
+slide 1 once the licensed Obvia Narrow is installed — being a condensed face,
+it should pull the text back to roughly the Figma height.
 
 ---
 
-## Two deliberate departures from the Figma file
+## Departures from the Figma file
 
 1. **Slide 1 has a back arrow.** In the design it has only a forward arrow,
-   which leaves a visitor unable to return to the home screen. Here it steps
-   back to the home screen. Remove the `index === 0` branch in `buildSlide()`
-   if you want the design's behaviour exactly.
+   which leaves a visitor unable to return. Here it steps back to the home
+   screen. Remove the `index === 0` branch in `buildSlide()` for the design's
+   behaviour exactly.
 
-2. **The home screen's asymmetric layout is reproduced as drawn** — the first
+2. **The About screen has no back arrow** — requested. The logo covers it.
+
+3. **The home screen's asymmetric layout is reproduced as drawn** — the first
    text block sits in the left column, the second in the right column below the
    videos, leaving two quadrants empty. This looks like the least-finished
    screen in the file; if it was unintentional it is a small CSS change
    (`.home__block--one` / `--two`).
 
-One transcription note: the Spanish body text on slide 2 reads *"y esas leyes
-radicalmente distintas"*, which is missing a verb. It has been kept verbatim
-and flagged in `js/content.js` rather than silently corrected.
+Layout note: the BSC heading on the About screen wraps to three lines with the
+fallback font, where the design has two. Obvia Narrow is a condensed face and
+should pull it back to two — worth re-checking with the real fonts installed.

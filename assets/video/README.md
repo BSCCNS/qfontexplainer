@@ -1,12 +1,14 @@
 # Videos
 
-The home screen expects two files here:
+Three files are expected here:
 
-- `immigrant.mp4`
-- `expat.mp4`
+- `immigrant.mp4` — home screen, left panel
+- `expat.mp4` — home screen, right panel
+- `screensaver.mp4` — the attract loop shown after two minutes of inactivity
 
-Until they exist, each panel falls back to showing its label, so the layout
-stays reviewable.
+Until they exist, each home panel falls back to showing its label and the
+screensaver falls back to `assets/screensaver-poster.png`, so the layout stays
+reviewable.
 
 ## Encoding for the Raspberry Pi
 
@@ -15,9 +17,10 @@ software-decodes VP9 and AV1, which drops frames badly on a 4K portrait panel.
 
 Both videos autoplay muted and loop, so keep them short and seamless.
 
-Panels are 850 x 412 in design pixels and the video is cropped to fill
-(`object-fit: cover`), so encode at that aspect ratio (~2.06:1) to avoid
-losing anything important at the edges.
+The home panels are 850 x 412 in design pixels and the video is cropped to fill
+(`object-fit: cover`), so encode at that aspect ratio (~2.06:1) to avoid losing
+anything important at the edges. The screensaver is full-bleed portrait and
+also cropped to fill, so encode it 9:16 to match the panel.
 
 ```sh
 ffmpeg -i source.mov \

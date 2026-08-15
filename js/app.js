@@ -16,6 +16,10 @@
   var CANVAS_H = 3960;
   var STORAGE_KEY = 'qc.lang';
   var DEFAULT_LANG = 'es';
+  // Inactivity before the attract loop takes over. Override without touching
+  // this file by setting window.QC_IDLE_MS in index.html before app.js loads —
+  // handy for tuning on site, or for testing without waiting two minutes.
+  var IDLE_MS = window.QC_IDLE_MS || 2 * 60 * 1000;
 
   var stage = document.getElementById('stage');
 
@@ -58,7 +62,16 @@
   /* ---------------------------------------------------------------- */
 
   function buildHeader(screen) {
-    screen.appendChild(img('assets/logo.svg', 'Quantum Compass')).className = 'logo';
+    // The logo doubles as the home button on every screen — it is the one
+    // control a visitor can rely on being in the same place throughout.
+    var home = el('button', 'logo');
+    home.type = 'button';
+    home.setAttribute('aria-label', 'Quantum Compass — home');
+    home.appendChild(img('assets/logo.svg', 'Quantum Compass'));
+    home.addEventListener('click', function () {
+      go('home');
+    });
+    screen.appendChild(home);
 
     var bar = el('div', 'langbar');
     window.CONTENT.languages.forEach(function (lang) {
@@ -139,7 +152,10 @@
   function buildSlide(index) {
     var copy = t();
     var slide = copy.slides[index];
-    var screen = el('section', 'screen');
+    var screen = el('section', 'screen slide--' + (index + 1));
+    // Slide 5 re-draws the apparatus with word masks; its scene sits a few
+    // pixels off the others, so it carries its own positioning hook.
+    if (index === 4) screen.classList.add('slide--words');
     buildHeader(screen);
 
     screen.appendChild(el('h1', 'slide__title', slide.title));
@@ -151,6 +167,19 @@
     var figure = el('div', 'slide__figure');
     figure.appendChild(img('assets/illustrations/slide' + (index + 1) + '.svg'));
     screen.appendChild(figure);
+
+    // The cat appears over the scene on the first two slides, in a different
+    // spot on each. Hidden if the asset is missing rather than showing broken.
+    if (index === 0 || index === 1) {
+      screen.classList.add('slide--cat-' + (index + 1));
+      var cat = el('div', 'slide__cat');
+      var catImg = img('assets/cat.svg');
+      catImg.addEventListener('error', function () {
+        cat.remove();
+      });
+      cat.appendChild(catImg);
+      screen.appendChild(cat);
+    }
 
     // Callout labels only appear on the two slides that carry them in the
     // design: the bare apparatus (1) and the word-mask version (5).
@@ -213,22 +242,101 @@
     });
     screen.appendChild(mark);
 
-    // Institutional lockup. Replace the spans with the supplied logo files.
-    var footer = el('div', 'about__footer');
-    var left = el('div', 'about__footer-logo');
-    left.appendChild(el('span', null, 'Creative Intelligence Lab'));
-    var right = el('div', 'about__footer-logo');
-    right.appendChild(el('span', null, 'Barcelona Supercomputing Center'));
-    footer.append(left, right);
+    // Institutional lockup, exported from Figma as a single asset.
+    var footer = img('assets/logos-lockup.svg', 'Creative Intelligence Lab · Barcelona Supercomputing Center');
+    footer.className = 'about__footer';
     screen.appendChild(footer);
 
-    var back = buildArrow('prev', function () {
-      go('home');
-    });
-    back.classList.add('about__back');
-    screen.appendChild(back);
-
+    // No back arrow here: the logo in the header already returns home, and a
+    // second control doing the same thing just adds noise.
     return screen;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Screensaver                                                      */
+  /* ---------------------------------------------------------------- */
+
+  /*
+   * After IDLE_MS with nobody touching the panel, an attract loop takes over:
+   * the diffraction video full-bleed with the two institutional logos at the
+   * bottom (Figma "Group 81"). Any touch dismisses it and returns to the home
+   * screen, so each visitor starts from the same place rather than halfway
+   * through whatever the last person was reading.
+   *
+   * It lives outside the normal screen stack as an overlay, so showing it does
+   * not disturb `state.view` — there is nothing to restore when it closes.
+   */
+  var idleTimer = null;
+  var screensaver = null;
+
+  function buildScreensaver() {
+    var node = el('div', 'screensaver');
+    node.setAttribute('aria-hidden', 'true');
+
+    var video = document.createElement('video');
+    video.className = 'screensaver__video';
+    video.src = 'assets/video/screensaver.mp4';
+    video.poster = 'assets/screensaver-poster.png';
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    // If the file is missing the poster still shows, so the attract screen is
+    // never blank while the video is being produced.
+    video.addEventListener('error', function () {
+      node.classList.add('screensaver--poster-only');
+    });
+    node.appendChild(video);
+
+    var lockup = img('assets/logos-lockup.svg');
+    lockup.className = 'screensaver__logos';
+    node.appendChild(lockup);
+
+    return node;
+  }
+
+  function showScreensaver() {
+    if (screensaver) return;
+    screensaver = buildScreensaver();
+    document.body.appendChild(screensaver);
+    requestAnimationFrame(function () {
+      screensaver.classList.add('is-active');
+    });
+    var v = screensaver.querySelector('video');
+    if (v) {
+      var play = v.play();
+      if (play && play.catch) play.catch(function () {});
+    }
+  }
+
+  function hideScreensaver() {
+    if (!screensaver) return;
+    screensaver.remove();
+    screensaver = null;
+  }
+
+  function resetIdle() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(showScreensaver, IDLE_MS);
+  }
+
+  function bindIdle() {
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (evt) {
+      window.addEventListener(
+        evt,
+        function () {
+          if (screensaver) {
+            // The gesture that wakes the panel only dismisses the attract
+            // loop; it must not also land on whatever is underneath.
+            hideScreensaver();
+            go('home');
+          }
+          resetIdle();
+        },
+        { capture: true, passive: true }
+      );
+    });
+    resetIdle();
   }
 
   /* ---------------------------------------------------------------- */
@@ -360,6 +468,7 @@
 
     hardenForKiosk();
     bindKeys();
+    bindIdle();
     render();
 
     // After the first screen is on the glass, not before.

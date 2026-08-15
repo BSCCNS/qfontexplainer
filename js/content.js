@@ -6,8 +6,8 @@
  * the only one to lift when the public website gets built.
  *
  * LANGUAGE STATUS
- *   es — AUTHORITATIVE. Pulled from the Figma file (touch screen_ESP).
- *        Last synced: 2026-08-13, after the copy rewrite.
+ *   es — AUTHORITATIVE. Pulled from the Figma page "Booth / Comunicaciones".
+ *        Last synced: 2026-08-15. Verify with tools/sync-text.py.
  *   en — DRAFT TRANSLATION written for this build. NEEDS REVIEW.
  *   ca — DRAFT TRANSLATION written for this build. NEEDS REVIEW.
  *
@@ -21,14 +21,12 @@
  *   them. A "\n" inside a string is a hard line break with no extra spacing —
  *   use it only where the design breaks a line deliberately (it is rendered
  *   via `white-space: pre-line`). Titles may contain "\n" for the same reason.
- *
- * To re-sync Spanish after further edits in Figma, see tools/sync-text.py.
  */
 
 window.CONTENT = {
   languages: [
     { code: 'en', label: 'English' },
-    { code: 'ca', label: 'Catalan' },
+    { code: 'ca', label: 'Català' },
     { code: 'es', label: 'Español' },
   ],
 
@@ -75,41 +73,46 @@ window.CONTENT = {
       {
         title: 'El experimento de la doble rendija',
         body: [
-          'En 1801, Thomas Young dirigió un rayo de luz hacia una barrera con dos ranuras estrechas.\nEsperaba demostrar que la luz no estaba formada de partículas, que hubieran formados dos bandas de luz en la pantalla. En cambio, al estar compuesta por ondas, la luz pasaría por ambas rendijas y formaría un patrón de franjas alternas, brillantes y oscuras. Lo que Young no sabía era que hubiera observado lo mismo si hubiera usado partículas muy pequeñas, incluso átomos o moléculas.',
+          'En 1801, Thomas Young proyectó un rayo de luz hacia una barrera con dos ranuras estrechas.',
+          'Su intención era demostrar que la luz no estaba formada de partículas –pues, si fuera así, estas formarían dos bandas de luz en la pantalla–, sino por ondas, y que el paso de la luz por ambas rendijas formaría un patrón de franjas alternas, brillantes y oscuras.',
+          'Lo que Young no sabía era que, si hubiera usado partículas muy pequeñas, incluso átomos o moléculas, hubiera observado lo mismo.',
           'Este es uno de los experimentos que cambió la física y nuestra percepción de la realidad.',
         ],
       },
       {
         title: 'Una partícula, dos CAMINOS',
         body: [
-          'Si disparamos partículas muy pequeñas, esperamos verlas seguir alguno de los dos caminos que van desde la fuente hasta la pantalla. Y, como en el juego de sombras chinas, observamos lo mismo con luz, siempre que las rendijas sean mucho más grandes que su longitud de onda.',
+          'Si disparamos partículas muy pequeñas, esperamos que sigan uno de los dos caminos que van desde la fuente hasta la pantalla. Así, tal y como ocurre al proyectar sombras, observaríamos el mismo efecto con haces de luz, siempre y cuando las rendijas sean mucho más grandes que su longitud de onda.',
           'Pero algo curioso pasa si las partículas son muy pequeñas, como un electrón.',
         ],
       },
       {
         title: 'La partícula como onda',
         body: [
-          'Si no colocamos ningún detector, una partícula pequeña es gobernada por las leyes de la mecánica cuántica —radicalmente distintas a las del mundo cotidiano —y se comporta como una onda, como si atravesara por ambas rendijas simultáneamente creando frentes de onda que avanzan hacia la pantalla.',
+          'Si no colocamos ningún detector, una partícula pequeña es gobernada por las leyes de la mecánica cuántica —radicalmente distintas a las del mundo cotidiano —y se comporta como una onda. Es decir, como si atravesara ambas rendijas simultáneamente, creando frentes de onda que avanzan hacia la pantalla.',
           'Se dice que las partículas están en superposición entre ambas rendijas',
         ],
       },
       {
         title: 'Interferencia constructiva y destructiva',
         body: [
-          'Los frentes de onda que salen de las rendijas se encuentran al llegar a la pantalla creando un patrón de franjas alternadas de luz y oscuridad: donde las crestas de las ondas coinciden se suman (interferencia constructiva = franja brillante); y donde una cresta y valle coinciden se cancelan (interferencia destructiva = franja oscura).',
+          'Los frentes de onda que salen de las rendijas se encuentran al llegar a la pantalla, creando un patrón de franjas alternadas de luz y oscuridad.',
+          'Donde las crestas de las ondas coinciden, se suman (interferencia constructiva = franja brillante)',
+          'Donde una cresta y valle coinciden, se cancelan (interferencia destructiva = franja oscura).',
         ],
       },
       {
         title: '¿Y si las rendijas fueran palabras?',
         body: [
-          'Como es el mismo fenómeno físico, reemplazamos en el cálculo a las dos simples ranuras por otras más complejas, donde cada palabra es una máscara tipográfica.',
+          'Como es el mismo fenómeno físico, reemplazamos en el cálculo las dos simples ranuras por otras más complejas, donde cada palabra es una máscara tipográfica.',
           'La luz o las partículas pasan a través de su forma y llegan a la pantalla formando un patrón de difracción único.',
         ],
       },
       {
         title: 'Las dos palabras interfieren',
         body: [
-          'Pero, igual que con las rendijas, los frentes de onda que pasaron por cada palabra interactúan entre sí. El patrón que aparece en la pantalla no es solamente la suma de las dos palabras. También contiene lo que ocurre entre ellas: su diferencia, su tensión, su interferencia.',
+          'Pero, igual que con las rendijas, los frentes de onda que pasan por cada palabra interactúan entre sí.',
+          'El patrón que aparece en la pantalla no es solo la suma de las dos palabras, sino que también contiene lo que ocurre entre ellas: su diferencia, su tensión, su interferencia.',
         ],
       },
       {
@@ -144,8 +147,11 @@ window.CONTENT = {
         },
       ],
       creditsTitle: 'Créditos',
+      // NOTE: Figma currently reads "Paula Benito, Sophie MarandonTomás Andrade"
+      // — a missing separator that runs two people's names together. Corrected
+      // here rather than reproduced; worth fixing in Figma so the two match.
       credits:
-        'BSC Creative Intelligence Lab: Sol Bucalo, Paula Méndez, Míriam Herrero, Raquel Barrachina, Paula Fernández V., Paula Benito, Tomás Andrade, Marc Heras, David García, Guillermo Marín, Jerónimo Calderón, Juan León, Roger González, Fernando Cucchietti; en colaboración con Sophie Marandon, Nataly Buslón, Xavier Paradis.',
+        'BSC Creative Intelligence Lab: Sol Bucalo, Paula Méndez, Míriam Herrero, Raquel Barrachina, Paula Fernández V., Paula Benito, Sophie Marandon, Tomás Andrade, Marc Heras, David García, Guillermo Marín, Jerónimo Calderón, Juan León, Roger González, Fernando Cucchietti; en colaboración con Nataly Buslón y Xavier Paradis.',
       back: 'Volver',
     },
   },
@@ -192,28 +198,32 @@ window.CONTENT = {
       {
         title: 'The double-slit experiment',
         body: [
-          'In 1801, Thomas Young directed a beam of light at a barrier with two narrow slits.\nHe expected to show that light was not made of particles, which would have formed two bands of light on the screen. Instead, being composed of waves, the light would pass through both slits and form a pattern of alternating bright and dark fringes. What Young did not know was that he would have observed the same thing had he used very small particles, even atoms or molecules.',
+          'In 1801, Thomas Young projected a beam of light at a barrier with two narrow slits.',
+          'His intention was to show that light was not made of particles — for if it were, they would form two bands of light on the screen — but of waves, and that light passing through both slits would form a pattern of alternating bright and dark fringes.',
+          'What Young did not know was that, had he used very small particles, even atoms or molecules, he would have observed the same thing.',
           'This is one of the experiments that changed physics and our perception of reality.',
         ],
       },
       {
         title: 'One particle, two PATHS',
         body: [
-          'If we fire very small particles, we expect to see them follow one of the two paths running from the source to the screen. And, as in a shadow-puppet play, we observe the same with light, as long as the slits are much larger than its wavelength.',
+          'If we fire very small particles, we expect them to follow one of the two paths running from the source to the screen. So, just as happens when casting shadows, we would observe the same effect with beams of light, as long as the slits are much larger than its wavelength.',
           'But something curious happens if the particles are very small, like an electron.',
         ],
       },
       {
         title: 'The particle as a wave',
         body: [
-          'If we place no detector, a small particle is governed by the laws of quantum mechanics — radically different from those of the everyday world — and behaves like a wave, as if it passed through both slits simultaneously, creating wavefronts that travel towards the screen.',
+          'If we place no detector, a small particle is governed by the laws of quantum mechanics — radically different from those of the everyday world — and behaves like a wave. That is, as if it passed through both slits simultaneously, creating wavefronts that travel towards the screen.',
           'Particles are said to be in superposition between both slits',
         ],
       },
       {
         title: 'Constructive and destructive interference',
         body: [
-          'The wavefronts leaving the slits meet as they reach the screen, creating a pattern of alternating light and dark fringes: where the crests of the waves coincide they add together (constructive interference = bright fringe); and where a crest and a trough coincide they cancel out (destructive interference = dark fringe).',
+          'The wavefronts leaving the slits meet as they reach the screen, creating a pattern of alternating light and dark fringes.',
+          'Where the crests of the waves coincide, they add together (constructive interference = bright fringe)',
+          'Where a crest and a trough coincide, they cancel out (destructive interference = dark fringe).',
         ],
       },
       {
@@ -226,7 +236,8 @@ window.CONTENT = {
       {
         title: 'The two words interfere',
         body: [
-          'But, just as with the slits, the wavefronts that passed through each word interact with one another. The pattern that appears on the screen is not only the sum of the two words. It also contains what happens between them: their difference, their tension, their interference.',
+          'But, just as with the slits, the wavefronts passing through each word interact with one another.',
+          'The pattern that appears on the screen is not only the sum of the two words, but also contains what happens between them: their difference, their tension, their interference.',
         ],
       },
       {
@@ -262,7 +273,7 @@ window.CONTENT = {
       ],
       creditsTitle: 'Credits',
       credits:
-        'BSC Creative Intelligence Lab: Sol Bucalo, Paula Méndez, Míriam Herrero, Raquel Barrachina, Paula Fernández V., Paula Benito, Tomás Andrade, Marc Heras, David García, Guillermo Marín, Jerónimo Calderón, Juan León, Roger González, Fernando Cucchietti; in collaboration with Sophie Marandon, Nataly Buslón, Xavier Paradis.',
+        'BSC Creative Intelligence Lab: Sol Bucalo, Paula Méndez, Míriam Herrero, Raquel Barrachina, Paula Fernández V., Paula Benito, Sophie Marandon, Tomás Andrade, Marc Heras, David García, Guillermo Marín, Jerónimo Calderón, Juan León, Roger González, Fernando Cucchietti; in collaboration with Nataly Buslón and Xavier Paradis.',
       back: 'Back',
     },
   },
@@ -309,28 +320,32 @@ window.CONTENT = {
       {
         title: 'L’experiment de la doble escletxa',
         body: [
-          'El 1801, Thomas Young va dirigir un raig de llum cap a una barrera amb dues escletxes estretes.\nEsperava demostrar que la llum no estava formada de partícules, que haurien format dues bandes de llum a la pantalla. En canvi, en estar composta per ones, la llum passaria per ambdues escletxes i formaria un patró de franges alternes, brillants i fosques. El que Young no sabia era que hauria observat el mateix si hagués fet servir partícules molt petites, fins i tot àtoms o molècules.',
+          'El 1801, Thomas Young va projectar un raig de llum cap a una barrera amb dues escletxes estretes.',
+          'La seva intenció era demostrar que la llum no estava formada de partícules –perquè, si fos així, aquestes formarien dues bandes de llum a la pantalla–, sinó per ones, i que el pas de la llum per ambdues escletxes formaria un patró de franges alternes, brillants i fosques.',
+          'El que Young no sabia era que, si hagués fet servir partícules molt petites, fins i tot àtoms o molècules, hauria observat el mateix.',
           'Aquest és un dels experiments que va canviar la física i la nostra percepció de la realitat.',
         ],
       },
       {
         title: 'Una partícula, dos CAMINS',
         body: [
-          'Si disparem partícules molt petites, esperem veure-les seguir algun dels dos camins que van des de la font fins a la pantalla. I, com en el joc d’ombres xineses, observem el mateix amb llum, sempre que les escletxes siguin molt més grans que la seva longitud d’ona.',
+          'Si disparem partícules molt petites, esperem que segueixin un dels dos camins que van des de la font fins a la pantalla. Així, tal com passa en projectar ombres, observaríem el mateix efecte amb feixos de llum, sempre que les escletxes siguin molt més grans que la seva longitud d’ona.',
           'Però passa una cosa curiosa si les partícules són molt petites, com un electró.',
         ],
       },
       {
         title: 'La partícula com a ona',
         body: [
-          'Si no hi col·loquem cap detector, una partícula petita és governada per les lleis de la mecànica quàntica — radicalment diferents de les del món quotidià — i es comporta com una ona, com si travessés ambdues escletxes simultàniament creant fronts d’ona que avancen cap a la pantalla.',
+          'Si no hi col·loquem cap detector, una partícula petita és governada per les lleis de la mecànica quàntica — radicalment diferents de les del món quotidià — i es comporta com una ona. És a dir, com si travessés ambdues escletxes simultàniament, creant fronts d’ona que avancen cap a la pantalla.',
           'Es diu que les partícules estan en superposició entre ambdues escletxes',
         ],
       },
       {
         title: 'Interferència constructiva i destructiva',
         body: [
-          'Els fronts d’ona que surten de les escletxes es troben en arribar a la pantalla creant un patró de franges alternades de llum i foscor: on les crestes de les ones coincideixen se sumen (interferència constructiva = franja brillant); i on una cresta i una vall coincideixen s’anul·len (interferència destructiva = franja fosca).',
+          'Els fronts d’ona que surten de les escletxes es troben en arribar a la pantalla, creant un patró de franges alternades de llum i foscor.',
+          'On les crestes de les ones coincideixen, se sumen (interferència constructiva = franja brillant)',
+          'On una cresta i una vall coincideixen, s’anul·len (interferència destructiva = franja fosca).',
         ],
       },
       {
@@ -343,7 +358,8 @@ window.CONTENT = {
       {
         title: 'Les dues paraules interfereixen',
         body: [
-          'Però, igual que amb les escletxes, els fronts d’ona que van passar per cada paraula interactuen entre si. El patró que apareix a la pantalla no és només la suma de les dues paraules. També conté el que passa entre elles: la seva diferència, la seva tensió, la seva interferència.',
+          'Però, igual que amb les escletxes, els fronts d’ona que passen per cada paraula interactuen entre si.',
+          'El patró que apareix a la pantalla no és només la suma de les dues paraules, sinó que també conté el que passa entre elles: la seva diferència, la seva tensió, la seva interferència.',
         ],
       },
       {
@@ -379,7 +395,7 @@ window.CONTENT = {
       ],
       creditsTitle: 'Crèdits',
       credits:
-        'BSC Creative Intelligence Lab: Sol Bucalo, Paula Méndez, Míriam Herrero, Raquel Barrachina, Paula Fernández V., Paula Benito, Tomás Andrade, Marc Heras, David García, Guillermo Marín, Jerónimo Calderón, Juan León, Roger González, Fernando Cucchietti; en col·laboració amb Sophie Marandon, Nataly Buslón, Xavier Paradis.',
+        'BSC Creative Intelligence Lab: Sol Bucalo, Paula Méndez, Míriam Herrero, Raquel Barrachina, Paula Fernández V., Paula Benito, Sophie Marandon, Tomás Andrade, Marc Heras, David García, Guillermo Marín, Jerónimo Calderón, Juan León, Roger González, Fernando Cucchietti; en col·laboració amb Nataly Buslón i Xavier Paradis.',
       back: 'Tornar',
     },
   },

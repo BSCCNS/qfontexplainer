@@ -61,7 +61,7 @@
   --canvas-h: 3960px;
 
   /* Shared geometry, measured from the Figma frames */
-  --margin-x: 332.8px; /* left text margin on slides */
+  --margin-x: 311px; /* left text margin on slides */
   --header-y: 453px; /* logo top edge */
 }
 
@@ -161,13 +161,23 @@ button {
 /* ------------------------------------------------------------------ */
 /* Header — logo + language switcher                                  */
 /* ------------------------------------------------------------------ */
+/* Also the home button — see buildHeader() in app.js. */
 .logo {
   position: absolute;
   left: 209.5px;
   top: var(--header-y);
   width: 122.84px;
   height: 122.84px;
+  padding: 0;
+  transition: opacity 160ms ease;
 }
+
+.logo img {
+  width: 100%;
+  height: 100%;
+}
+
+.logo:active { opacity: 0.5; }
 
 .langbar {
   position: absolute;
@@ -209,7 +219,7 @@ button {
 .slide__title {
   position: absolute;
   left: var(--margin-x);
-  top: 785px;
+  top: 774px;
   width: 1400px;
   font-size: var(--fs-title);
   font-weight: 400;
@@ -221,7 +231,7 @@ button {
 .slide__body {
   position: absolute;
   left: var(--margin-x);
-  top: 862px;
+  top: 856px;
   width: 640px;
   font-size: var(--fs-body);
   line-height: var(--lh-body);
@@ -250,11 +260,15 @@ button {
 /* The illustration sits in the same place on every slide. */
 .slide__figure {
   position: absolute;
-  left: 379.8px;
-  top: 1356.2px;
+  left: 358px;
+  top: 1362px;
   width: 1626.2px;
   height: 1500.1px;
 }
+
+/* Two slides sit slightly off the common position in the design. */
+.slide--words .slide__figure { left: 355.6px; top: 1344.9px; }
+.slide--6 .slide__figure     { left: 362px;   top: 1377px; }
 
 .slide__figure img {
   width: 100%;
@@ -274,18 +288,43 @@ button {
   color: var(--c-white);
 }
 
-.scene-label--source   { left: 258.9px;  top: 2884.9px; }
-.scene-label--barrier  { left: 729.6px;  top: 2564.8px; }
-.scene-label--slit-1   { left: 928.7px;  top: 2036.3px; }
-.scene-label--slit-2   { left: 1117.1px; top: 2141.2px; }
-.scene-label--screen   { left: 1307.7px; top: 1939.7px; }
+/*
+ * Slide 5's apparatus sits ~6px left and ~11px up from slide 1's, so its
+ * labels are offset to match rather than sharing one set of coordinates.
+ */
+.scene-label--source   { left: 241px;    top: 2884.7px; }
+.scene-label--barrier  { left: 711.8px;  top: 2564.7px; }
+.scene-label--slit-1   { left: 910.8px;  top: 2036.1px; }
+.scene-label--slit-2   { left: 1099.2px; top: 2141px; }
+.scene-label--screen   { left: 1289.9px; top: 1939.5px; }
+
+.slide--words .scene-label--source   { left: 235px;    top: 2873.7px; }
+.slide--words .scene-label--barrier  { left: 705.8px;  top: 2553.7px; }
+.slide--words .scene-label--slit-1   { left: 904.8px;  top: 2025.1px; }
+.slide--words .scene-label--slit-2   { left: 1093.2px; top: 2130px; }
+.slide--words .scene-label--screen   { left: 1283.9px; top: 1928.5px; }
+
+/*
+ * The cat wanders through the scene on the first two slides — a different
+ * position on each, so it reads as having moved between them.
+ */
+.slide__cat {
+  position: absolute;
+  width: 109.4px;
+  height: 83.8px;
+}
+
+.slide__cat img { width: 100%; height: 100%; }
+
+.slide--cat-1 .slide__cat { left: 615px; top: 1958px; }
+.slide--cat-2 .slide__cat { left: 270px; top: 2790px; }
 
 /* ------------------------------------------------------------------ */
 /* Prev / next chevrons                                               */
 /* ------------------------------------------------------------------ */
 .nav-arrow {
   position: absolute;
-  top: 3112.5px;
+  top: 3113px;
   width: 146.43px;
   height: 282.29px;
   display: grid;
@@ -298,10 +337,10 @@ button {
   height: 100%;
 }
 
-.nav-arrow--next { left: 1840.5px; }
+.nav-arrow--next { left: 1844px; }
 
 .nav-arrow--prev {
-  left: 242.6px;
+  left: 235px;
   transform: scaleX(-1);
 }
 
@@ -318,10 +357,10 @@ button {
 }
 
 /* Left column, upper text block. */
-.home__block--one { left: 243px; top: 987px; }
+.home__block--one { left: 241px; top: 785px; }
 
 /* Right column, lower text block. */
-.home__block--two { left: 1147px; top: 2409px; }
+.home__block--two { left: 1141px; top: 2317px; }
 
 .home__block h2 {
   font-size: var(--fs-title);
@@ -340,7 +379,7 @@ button {
 
 .home__video {
   position: absolute;
-  top: 1818px;
+  top: 1543px;
   width: 850px;
   height: 412px;
   border-radius: 8px;
@@ -351,8 +390,8 @@ button {
   place-items: center;
 }
 
-.home__video--left  { left: 243px; }
-.home__video--right { left: 1147px; }
+.home__video--left  { left: 241px; }
+.home__video--right { left: 1138px; }
 
 .home__video video {
   width: 100%;
@@ -372,7 +411,7 @@ button {
   position: absolute;
   left: 0;
   right: 0;
-  top: 3129px;
+  top: 3052px;
   text-align: center;
   font-size: var(--fs-body);
   line-height: 1;
@@ -381,7 +420,7 @@ button {
 .home__actions {
   position: absolute;
   left: 587px;
-  top: 3227px;
+  top: 3203px;
   display: flex;
   gap: 54px;
 }
@@ -423,14 +462,14 @@ button {
  */
 .about__section {
   position: absolute;
-  left: 558px;
+  left: 585px;
   width: 1000px;
 }
 
-.about__section:nth-of-type(1) { top: 828px; }
-.about__section:nth-of-type(2) { top: 1415px; }
-.about__section:nth-of-type(3) { top: 1903px; }
-.about__credits { top: 3067px; }
+.about__section:nth-of-type(1) { top: 785px; }
+.about__section:nth-of-type(2) { top: 1401px; }
+.about__section:nth-of-type(3) { top: 1919px; }
+.about__credits { top: 3034px; }
 
 .about__section h2 {
   font-size: var(--fs-title);
@@ -461,40 +500,58 @@ button {
   top: 3563px;
   width: 768px;
   height: 185.74px;
-  display: flex;
-  align-items: center;
-  gap: 0;
 }
 
-.about__footer-logo {
+/* ------------------------------------------------------------------ */
+/* Screensaver / attract loop                                         */
+/* ------------------------------------------------------------------ */
+/*
+ * Sits above the stage rather than inside it. The stage is letterboxed to
+ * preserve the 9:16 design, but the attract loop is a full-bleed video with
+ * only a logo lockup on it — nothing that can be mis-proportioned — so it
+ * covers the whole panel instead, and looks intentional on any display.
+ */
+.screensaver {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--c-black);
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.screensaver.is-active { opacity: 1; }
+
+.screensaver__video {
+  width: 100%;
   height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 0 24px;
+  object-fit: cover;
+  display: block;
 }
 
-.about__footer-logo:first-child { width: 385.65px; }
-
-.about__footer-logo:last-child {
-  width: 382.35px;
-  border-left: 1px solid rgba(255, 255, 255, 0.4);
+/*
+ * With no video file present the <video> element collapses in some engines,
+ * so fall back to painting the poster as a background instead.
+ */
+.screensaver--poster-only {
+  background-image: url('../assets/screensaver-poster.png');
+  background-size: cover;
+  background-position: center;
 }
 
-.about__footer-logo img { max-height: 100%; }
+.screensaver--poster-only .screensaver__video { visibility: hidden; }
 
-/* Placeholder wordmarks, used until the real institutional logo files are
-   supplied. Deliberately plain so they read as unfinished, not as branding. */
-.about__footer-logo span {
-  font-size: 26px;
-  line-height: 1.25;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-align: center;
-  color: var(--c-grey);
-}
-
-.about__back {
+/*
+ * The lockup is placed as a proportion of the panel rather than in design
+ * pixels, because this layer is not inside the scaled stage. 3624/3964 and
+ * 914/2230 are its position and width in the Figma frame.
+ */
+.screensaver__logos {
   position: absolute;
-  left: 242.6px;
-  top: 3112.5px;
+  left: 50%;
+  top: 91.4%;
+  transform: translateX(-50%);
+  width: 41%;
+  max-width: 914px;
+  height: auto;
 }

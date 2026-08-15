@@ -29,15 +29,19 @@ fi
 # output path (relative to assets/, no .svg) : Figma node id
 # Node ids contain a colon, so only the FIRST colon separates the two fields.
 NODES=(
-  "illustrations/slide1:894:741"
-  "illustrations/slide2:894:768"
-  "illustrations/slide3:894:797"
-  "illustrations/slide4:894:831"
-  "illustrations/slide5:894:873"
-  "illustrations/slide6:894:908"
-  "illustrations/slide7:894:1130"
+  "illustrations/slide1:1021:365"
+  "illustrations/slide2:1021:452"
+  "illustrations/slide3:1021:540"
+  "illustrations/slide4:1021:641"
+  "illustrations/slide5:1021:758"
+  "illustrations/slide6:1024:83"
+  "illustrations/slide7:1027:126"
   # Small drawn mark on the About screen. app.js hides it while missing.
   "about-mark:983:989"
+  # The same mark placed over the illustration on slides 1 and 2.
+  "cat:1007:34"
+  # Institutional logo lockup, used by the About footer and the screensaver.
+  "logos-lockup:1000:3"
 )
 
 # Figma's image endpoint takes comma-separated ids and returns a JSON map of
@@ -89,5 +93,12 @@ PY
 
   echo "  ${name}.svg  <- ${node}"
 done
+
+# The wavefront animation lives outside the exported files (see that script's
+# header for why), so re-apply it now that the artwork has been overwritten.
+if [[ -x "$(dirname "$0")/animate-illustrations.py" ]]; then
+  echo "Re-applying wavefront animation..."
+  "$(dirname "$0")/animate-illustrations.py"
+fi
 
 echo "Done. Reload the page to see them."

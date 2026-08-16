@@ -12,9 +12,11 @@ Built from the Figma file `Quantum` → page *Booth / Comunicaciones*.
 ## What it is, technically
 
 Static HTML, CSS and one plain JavaScript file. **No build step, no
-dependencies, no Node, no bundler.** About 2 MB in total, nearly all of which
-is one asset: `slide6.svg` embeds the rendered diffraction bitmap. Code and
-markup together are under 60 KB.
+dependencies, no Node, no bundler.** Around 800 KB of runtime assets in total;
+code and markup together are under 70 KB.
+
+(The `tools/` scripts need Python and Pillow, but they only prepare artwork —
+nothing the browser loads depends on them.)
 
 It is written as classic `<script>` tags rather than ES modules, and it never
 calls `fetch()`. That is deliberate: both of those are blocked by browser
@@ -69,6 +71,27 @@ to see the mapping without writing anything.
 Three of the slides are told apart by comparing them against each other
 (slide 3 vs 4, 6 vs 7, 1 vs 5), so export both members of a pair together — on
 its own, the script will say it cannot tell which is which rather than guess.
+
+### Bitmap optimisation
+
+Two slides show a rendered diffraction pattern rather than line art, and Figma
+embeds it as a 3600 x 2338 lossless PNG — about 2x more pixels than the largest
+display can show, in the worst format for photographic content. Together they
+were 7.5 MB.
+
+`tools/optimise-illustrations.py` resamples to 1800px and re-encodes as JPEG,
+which takes the pair to **355 KB — a 95% reduction** at 46.6 dB PSNR (measured
+by rendering at kiosk size before and after; above 40 dB is generally taken as
+visually lossless). Images with an alpha channel stay PNG.
+
+Both export paths run it automatically, because the export overwrites the SVGs.
+It skips anything already optimised — re-encoding an existing JPEG on every
+export would accumulate generation loss.
+
+```sh
+./tools/optimise-illustrations.py --check          # report, change nothing
+./tools/optimise-illustrations.py --max-px 1400 --quality 78
+```
 
 To check whether the Spanish copy has drifted from Figma:
 
@@ -167,6 +190,105 @@ the committed SVGs are up to date.
 
 ---
 
+## Smoke test before deploying
+
+```sh
+./tools/smoke-test.py
+```
+
+It opens the real `index.html` over `file://` — exactly how the Pi loads it, no
+web server — drives the whole site, and reports pass/fail on 18 checks. Exits
+non-zero on failure, so it can gate a deploy.
+
+It covers: the licensed fonts are present, loaded and actually in use; the kiosk
+layout is selected and cannot scroll; all seven slides, home and about render;
+the seven illustrations load; the wavefront animation survived the last export;
+the logo returns home; all three languages switch; the attract loop appears when
+idle; and there are no JavaScript errors. Missing assets are listed separately
+rather than failed, since the videos are expected to be absent until supplied.
+
+**One trap it exists to catch.** If Obvia Narrow is installed on the machine you
+are testing from — likely, since it is a licensed desktop font the designers
+use — the site will look perfectly correct even when the web fonts are broken,
+because the browser quietly resolves the family from the system. The Pi has no
+such fallback and would render in the substitute face. The "Fonts declared and
+loaded" check reads the actual `FontFace` status and is the one that catches
+this; a visual check on a designer's machine cannot.
+
+### On the panel itself
+
+The automated test cannot see the real hardware, so once it is running on the Pi:
+
+1. **Portrait and full-bleed** — no black bars, no browser chrome, no scrollbar.
+2. **Type looks like the design** — headings condensed, not a generic sans. If
+   in doubt, compare the About heading against Figma.
+3. **Touch** — the logo returns home from any screen; chevrons move between
+   slides; the language pills switch; nothing shows a text-selection highlight
+   or a zoom on double-tap.
+4. **Wavefronts move** on slides 3 and 4.
+5. **Leave it alone for two minutes** — the attract loop should appear, and one
+   touch should dismiss it back to the home screen.
+6. **Leave it running for an hour** before opening — this is where a slow memory
+   leak or a Chromium update prompt would show up, not in the first minute.
+
+---
+
+## Two layouts, one set of files
+
+The same markup, content and scripts serve two very different displays:
+
+| | kiosk | fluid |
+|---|---|---|
+| Where | the installation touchscreen | phones, tablets, desktop |
+| Layout | fixed 2227.5 x 3960 canvas, scaled to fit | reflows |
+| Attract loop | after 2 min idle | never |
+| Cursor | hidden | normal |
+| Pinch-zoom | blocked | allowed |
+| Text selection | off | on |
+| Scrolling | locked | normal |
+
+`js/app.js` picks one at load and again on resize, putting `.layout-kiosk` or
+`.layout-fluid` on `<body>`. The installation panel is the only display that is
+both portrait and enormous, so that combination selects the kiosk; everything
+else gets the fluid layout. Force either for testing:
+
+```
+index.html?layout=kiosk
+index.html?layout=fluid
+```
+
+`css/styles.css` holds the kiosk layout and `css/responsive.css` the fluid one,
+every rule scoped under `.layout-fluid`. Nothing in `responsive.css` can affect
+the installation — a deliberate split, so work on the website cannot break the
+thing that has to run unattended at a festival.
+
+### How the fluid layout works
+
+There are only two real breakpoints; everything between them is handled by
+`clamp()`, so type and spacing scale continuously rather than jumping.
+
+- **60rem (960px)** — the slide splits into two columns, reading on the left and
+  the drawing on the right. Below it, everything stacks.
+- **Short landscape** (`max-height: 34rem`) — phones held sideways also get two
+  columns, because there height is the scarce dimension, not width.
+
+### The annotated diagram
+
+The callout labels are the hard part of making this responsive. They are
+positioned as percentages of the illustration box rather than in canvas pixels,
+so the drawing and its labels scale as one unit. On the kiosk this renders
+identically to before — the percentages were derived from the design
+coordinates and land within 0.1px of them.
+
+That still leaves legibility: a 24px label inside a 1626px drawing becomes
+**5.8px** on a 390px phone, which is well past reading size. So below 60rem the
+words on the drawing are replaced by numbered markers, with a legend underneath
+that decodes them. Above it, the words sit on the drawing as designed.
+
+Swipe left/right moves between slides on touch devices.
+
+---
+
 ## How the layout works
 
 Everything is authored at the Figma canvas size — **2227.5 × 3960**, a 9:16
@@ -181,25 +303,15 @@ Figma file. Nothing has been converted to rems or percentages, which keeps the
 stylesheet and the design file directly comparable.
 
 The consequence is that it is pixel-faithful at any size but does **not**
-reflow: on a laptop you get a correctly-proportioned portrait panel with black
-bars either side. That was the agreed trade-off — the public website will reuse
-`js/content.js` with a different stylesheet rather than trying to make one
-layout serve both.
+reflow: on a laptop in kiosk mode you get a correctly-proportioned portrait
+panel with black bars either side. Every other display gets the fluid layout
+described above.
 
 ---
 
 ## Outstanding items
 
-### 1. Fonts — check the licence before shipping
-
-The design uses **Obvia Narrow** and **TT Modernoir**. An Adobe Fonts
-subscription may not be enough: desktop sync does not permit self-hosting, and
-an Adobe *web project* loads from `use.typekit.net`, which needs a live
-internet connection on every page load. An offline kiosk satisfies neither.
-
-See `fonts/README.md`. This is the one item that cannot be fixed on site.
-
-### 2. Translations are drafts
+### 1. Translations are drafts
 
 Only Spanish exists in the Figma file. The English and Catalan in
 `js/content.js` were written for this build and are clearly marked as drafts.
@@ -207,7 +319,7 @@ Only Spanish exists in the Figma file. The English and Catalan in
 and the BSC / Creative Intelligence Lab descriptions, which should use each
 organisation's own official wording rather than a translation.
 
-### 3. Videos
+### 2. Videos
 
 Three files are still missing:
 
@@ -220,16 +332,11 @@ Three files are still missing:
 Encode as H.264 — see `assets/video/README.md` for the reasoning and an ffmpeg
 command.
 
-### 4. Slide 1 body height — font-dependent
+### 3. Institutional logos and the cat
 
-Slide 1 carries the longest body copy. In Figma it ends 44px above the
-illustration; rendered here with the *fallback* font it runs about 120px
-taller and its box overlaps the illustration's. There is no visible collision
-(the text sits well to the left of any drawn artwork), but the margin is gone.
-
-This is the clearest measurable symptom of the font substitution. Re-check
-slide 1 once the licensed Obvia Narrow is installed — being a condensed face,
-it should pull the text back to roughly the Figma height.
+`assets/cat.svg` is still missing, so the cat does not appear on slides 1 and 2.
+It hides itself rather than showing a broken image. One export from Figma
+(node `1007:34`) fixes it.
 
 ---
 

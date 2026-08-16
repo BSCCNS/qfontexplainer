@@ -1,2 +1,9 @@
+# macOS
+.DS_Store
+
+# Python bytecode from the tools/ scripts
 __pycache__/
 *.pyc
+
+# Scratch files left by the smoke test if it is interrupted
+_smoke-test.html

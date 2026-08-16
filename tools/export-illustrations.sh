@@ -94,6 +94,13 @@ PY
   echo "  ${name}.svg  <- ${node}"
 done
 
+# Figma embeds the bitmaps at full resolution; shrink them before anything else
+# touches the files. Runs first so the animation is applied to the final bytes.
+if [[ -x "$(dirname "$0")/optimise-illustrations.py" ]]; then
+  echo "Optimising embedded bitmaps..."
+  "$(dirname "$0")/optimise-illustrations.py" || true
+fi
+
 # The wavefront animation lives outside the exported files (see that script's
 # header for why), so re-apply it now that the artwork has been overwritten.
 if [[ -x "$(dirname "$0")/animate-illustrations.py" ]]; then

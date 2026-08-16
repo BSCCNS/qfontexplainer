@@ -30,6 +30,51 @@
   };
 
   /* ---------------------------------------------------------------- */
+  /* Layout mode                                                      */
+  /* ---------------------------------------------------------------- */
+
+  /*
+   * Two layouts share one set of files:
+   *
+   *   kiosk — the 2228 x 3960 design canvas, scaled to fit. Pixel-faithful to
+   *           Figma, no reflow. What the touchscreen at the installation runs.
+   *   fluid — reflows for phones, tablets and landscape desktop. What the
+   *           public website will use.
+   *
+   * The kiosk panel is the only display that is both portrait and enormous, so
+   * that combination selects it. Everything else gets the fluid layout. Append
+   * ?layout=kiosk or ?layout=fluid to force one — useful for checking the
+   * kiosk rendering on a laptop.
+   */
+  var KIOSK_MIN_WIDTH = 1500;
+
+  function detectLayout() {
+    var forced = /[?&]layout=(kiosk|fluid)/.exec(window.location.search);
+    if (forced) return forced[1];
+    var portrait = window.innerHeight > window.innerWidth;
+    return portrait && window.innerWidth >= KIOSK_MIN_WIDTH ? 'kiosk' : 'fluid';
+  }
+
+  function isKiosk() {
+    return document.documentElement.classList.contains('layout-kiosk');
+  }
+
+  /*
+   * The class goes on <html> as well as <body>. The kiosk pins both to
+   * `height: 100%; overflow: hidden`, and a rule scoped under a class on <body>
+   * cannot reach <html> to undo it — so the fluid layout could not scroll.
+   */
+  function applyLayout() {
+    var mode = detectLayout();
+    if (document.documentElement.classList.contains('layout-' + mode)) return false;
+    [document.documentElement, document.body].forEach(function (node) {
+      node.classList.remove('layout-kiosk', 'layout-fluid');
+      node.classList.add('layout-' + mode);
+    });
+    return true; // changed
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Small DOM helpers                                                */
   /* ---------------------------------------------------------------- */
 
@@ -61,7 +106,15 @@
   /* Shared chrome                                                    */
   /* ---------------------------------------------------------------- */
 
+  /*
+   * Wrapper elements (header, slide text, home groups) exist for the fluid
+   * layout, which needs real containers to lay out. They are inert on the
+   * kiosk: its children are absolutely positioned against the screen, and a
+   * static wrapper does not become their containing block.
+   */
   function buildHeader(screen) {
+    var header = el('header', 'screen__header');
+
     // The logo doubles as the home button on every screen — it is the one
     // control a visitor can rely on being in the same place throughout.
     var home = el('button', 'logo');
@@ -71,7 +124,7 @@
     home.addEventListener('click', function () {
       go('home');
     });
-    screen.appendChild(home);
+    header.appendChild(home);
 
     var bar = el('div', 'langbar');
     window.CONTENT.languages.forEach(function (lang) {
@@ -84,7 +137,8 @@
       });
       bar.appendChild(btn);
     });
-    screen.appendChild(bar);
+    header.appendChild(bar);
+    screen.appendChild(header);
   }
 
   function buildArrow(direction, onClick) {
@@ -102,16 +156,19 @@
 
   function buildHome() {
     var copy = t().home;
-    var screen = el('section', 'screen');
+    var screen = el('section', 'screen screen--home');
     buildHeader(screen);
 
+    var blocks = el('div', 'home__blocks');
     copy.blocks.forEach(function (block, i) {
       var wrap = el('div', 'home__block home__block--' + (i === 0 ? 'one' : 'two'));
       wrap.appendChild(el('h2', null, block.title));
       paragraphs(wrap, block.body);
-      screen.appendChild(wrap);
+      blocks.appendChild(wrap);
     });
+    screen.appendChild(blocks);
 
+    var videos = el('div', 'home__videos');
     copy.videos.forEach(function (video, i) {
       var box = el('div', 'home__video home__video--' + (i === 0 ? 'left' : 'right'));
       // Real files are dropped in as assets/video/<id>.mp4 — see README. Until
@@ -127,8 +184,9 @@
         box.replaceChildren(el('span', 'home__video-placeholder', video.label));
       });
       box.appendChild(node);
-      screen.appendChild(box);
+      videos.appendChild(box);
     });
+    screen.appendChild(videos);
 
     screen.appendChild(el('p', 'home__prompt', copy.prompt));
 
@@ -149,52 +207,92 @@
     return screen;
   }
 
+  /*
+   * The annotated scene — illustration, callout labels and the cat.
+   *
+   * Labels are positioned as percentages of the illustration box rather than
+   * in canvas pixels. On the kiosk that renders identically (the percentages
+   * were derived from the design coordinates), but it also makes the scene a
+   * self-contained unit that stays correct at any size — which is what lets
+   * the same markup serve the phone and desktop layouts.
+   *
+   * Slides 1 and 5 carry labels in the design. Their positions differ by up to
+   * 0.4% of the scene — about one rendered pixel on the kiosk — so both use one
+   * shared set rather than each carrying its own.
+   */
+  var SCENE_LABELS = [
+    { key: 'source', label: 'source', left: -7.19, top: 101.51 },
+    { key: 'barrier', label: 'barrier', left: 21.76, top: 80.17 },
+    { key: 'slit-1', label: 'slit', left: 33.99, top: 44.94 },
+    { key: 'slit-2', label: 'slit', left: 45.58, top: 51.93 },
+    { key: 'screen', label: 'screen', left: 57.31, top: 38.5 },
+  ];
+
+  // Where the cat stands on the slides that carry it, as a percentage of the
+  // illustration box (slide index -> position).
+  var CAT_SPOTS = { 0: { left: 15.8, top: 39.7 }, 1: { left: -5.4, top: 95.2 } };
+
+  function buildScene(screen, figure, index) {
+    var spot = CAT_SPOTS[index];
+    if (spot) {
+      var cat = el('div', 'slide__cat');
+      cat.style.left = spot.left + '%';
+      cat.style.top = spot.top + '%';
+      var catImg = img('assets/cat.svg');
+      // Hidden rather than shown broken while the asset is missing.
+      catImg.addEventListener('error', function () {
+        cat.remove();
+      });
+      cat.appendChild(catImg);
+      figure.appendChild(cat);
+    }
+
+    // Callout labels only appear on the two slides that carry them in the
+    // design: the bare apparatus (1) and the word-mask version (5).
+    if (index !== 0 && index !== 4) return;
+
+    var names = t().sceneLabels;
+    var legend = el('ol', 'scene-legend');
+
+    SCENE_LABELS.forEach(function (spec, i) {
+      var text = names[spec.label];
+
+      var node = el('span', 'scene-label scene-label--' + spec.key);
+      node.style.left = spec.left + '%';
+      node.style.top = spec.top + '%';
+      // The marker carries the number for small screens, where the words
+      // themselves would be far too small to read; the legend below decodes it.
+      node.appendChild(el('span', 'scene-label__marker', String(i + 1)));
+      node.appendChild(el('span', 'scene-label__text', text));
+      figure.appendChild(node);
+
+      legend.appendChild(el('li', null, text));
+    });
+
+    screen.appendChild(legend);
+  }
+
   function buildSlide(index) {
     var copy = t();
     var slide = copy.slides[index];
-    var screen = el('section', 'screen slide--' + (index + 1));
+    var screen = el('section', 'screen screen--slide slide--' + (index + 1));
     // Slide 5 re-draws the apparatus with word masks; its scene sits a few
     // pixels off the others, so it carries its own positioning hook.
     if (index === 4) screen.classList.add('slide--words');
     buildHeader(screen);
 
-    screen.appendChild(el('h1', 'slide__title', slide.title));
+    var text = el('div', 'slide__text');
+    text.appendChild(el('h1', 'slide__title', slide.title));
 
     var body = el('div', 'slide__body');
     paragraphs(body, slide.body);
-    screen.appendChild(body);
+    text.appendChild(body);
+    screen.appendChild(text);
 
     var figure = el('div', 'slide__figure');
     figure.appendChild(img('assets/illustrations/slide' + (index + 1) + '.svg'));
     screen.appendChild(figure);
-
-    // The cat appears over the scene on the first two slides, in a different
-    // spot on each. Hidden if the asset is missing rather than showing broken.
-    if (index === 0 || index === 1) {
-      screen.classList.add('slide--cat-' + (index + 1));
-      var cat = el('div', 'slide__cat');
-      var catImg = img('assets/cat.svg');
-      catImg.addEventListener('error', function () {
-        cat.remove();
-      });
-      cat.appendChild(catImg);
-      screen.appendChild(cat);
-    }
-
-    // Callout labels only appear on the two slides that carry them in the
-    // design: the bare apparatus (1) and the word-mask version (5).
-    if (index === 0 || index === 4) {
-      var labels = copy.sceneLabels;
-      [
-        ['source', labels.source],
-        ['barrier', labels.barrier],
-        ['slit-1', labels.slit],
-        ['slit-2', labels.slit],
-        ['screen', labels.screen],
-      ].forEach(function (pair) {
-        screen.appendChild(el('span', 'scene-label scene-label--' + pair[0], pair[1]));
-      });
-    }
+    buildScene(screen, figure, index);
 
     // First slide steps back to the home screen rather than dead-ending.
     screen.appendChild(
@@ -217,7 +315,7 @@
 
   function buildAbout() {
     var copy = t().about;
-    var screen = el('section', 'screen');
+    var screen = el('section', 'screen screen--about');
     buildHeader(screen);
 
     copy.sections.forEach(function (section) {
@@ -317,6 +415,7 @@
 
   function resetIdle() {
     if (idleTimer) clearTimeout(idleTimer);
+    if (!isKiosk()) return; // the attract loop is an installation behaviour
     idleTimer = setTimeout(showScreensaver, IDLE_MS);
   }
 
@@ -350,10 +449,14 @@
     else screen = buildSlide(state.slide);
 
     stage.replaceChildren(screen);
-    // Next frame, so the opacity transition actually runs.
-    requestAnimationFrame(function () {
-      screen.classList.add('is-active');
-    });
+    /*
+     * Applied synchronously, not inside requestAnimationFrame. `is-active`
+     * controls whether the screen is displayed at all, and rAF does not fire in
+     * a background tab — so deferring it could leave the page blank until the
+     * tab was focused. The fade is a CSS animation, which runs on insertion and
+     * needs no second frame to start from.
+     */
+    screen.classList.add('is-active');
 
     document.documentElement.lang = t().htmlLang;
   }
@@ -380,32 +483,58 @@
   /* ---------------------------------------------------------------- */
 
   function fit() {
+    // Only the kiosk layout uses the scaled canvas; the fluid layout lays out
+    // in real CSS pixels and ignores --scale entirely.
+    var changed = applyLayout();
     var scale = Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H);
     document.documentElement.style.setProperty('--scale', String(scale));
+    if (changed) {
+      // Switching layout changes which behaviours apply (idle attract loop,
+      // hidden cursor), so re-run the parts that depend on it.
+      syncLayoutBehaviour();
+    }
   }
 
   /* ---------------------------------------------------------------- */
   /* Kiosk behaviour                                                  */
   /* ---------------------------------------------------------------- */
 
+  /*
+   * Behaviours that belong to the installation but not to a website: the
+   * attract loop after two minutes of idling, and the hidden mouse cursor.
+   * Both would be baffling on the public site, so they follow the layout.
+   */
+  function syncLayoutBehaviour() {
+    if (isKiosk()) {
+      resetIdle();
+      document.body.classList.add('kiosk-cursor-hidden');
+    } else {
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = null;
+      hideScreensaver();
+      document.body.classList.remove('kiosk-cursor-hidden');
+    }
+  }
+
   function hardenForKiosk() {
     // Block pinch-zoom and double-tap zoom, which otherwise leave the kiosk
-    // stuck at the wrong scale with no way for a visitor to recover.
+    // stuck at the wrong scale with no way for a visitor to recover. Only on
+    // the kiosk: on a website, pinch-zoom is an accessibility requirement.
     document.addEventListener(
       'gesturestart',
       function (e) {
-        e.preventDefault();
+        if (isKiosk()) e.preventDefault();
       },
       { passive: false }
     );
 
     document.addEventListener('contextmenu', function (e) {
-      e.preventDefault();
+      if (isKiosk()) e.preventDefault();
     });
 
     // Hide the pointer until a real mouse shows up, so the kiosk has no cursor
-    // but a laptop used for review still does.
-    document.body.classList.add('kiosk-cursor-hidden');
+    // but a laptop used for review still does. syncLayoutBehaviour() adds the
+    // class; this only takes it away again.
     window.addEventListener(
       'mousemove',
       function () {
@@ -432,6 +561,53 @@
         go('home');
       }
     });
+  }
+
+  /*
+   * Horizontal swipe between slides. Expected on a phone, and harmless on the
+   * kiosk where the chevrons remain the obvious control.
+   */
+  function bindSwipe() {
+    var startX = 0;
+    var startY = 0;
+    var tracking = false;
+
+    window.addEventListener(
+      'touchstart',
+      function (e) {
+        if (e.touches.length !== 1) return;
+        tracking = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      },
+      { passive: true }
+    );
+
+    window.addEventListener(
+      'touchend',
+      function (e) {
+        if (!tracking) return;
+        tracking = false;
+        if (state.view !== 'slides' || screensaver) return;
+
+        var touch = e.changedTouches[0];
+        var dx = touch.clientX - startX;
+        var dy = touch.clientY - startY;
+        // Ignore anything that is mostly vertical — that is the reader
+        // scrolling the page, not asking for the next slide.
+        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+        var last = t().slides.length - 1;
+        if (dx < 0) {
+          if (state.slide < last) go('slides', state.slide + 1);
+        } else if (state.slide === 0) {
+          go('home');
+        } else {
+          go('slides', state.slide - 1);
+        }
+      },
+      { passive: true }
+    );
   }
 
   /* ---------------------------------------------------------------- */
@@ -462,6 +638,7 @@
       /* Storage unavailable — fall back to the default language. */
     }
 
+    applyLayout();
     fit();
     window.addEventListener('resize', fit);
     window.addEventListener('orientationchange', fit);
@@ -469,6 +646,8 @@
     hardenForKiosk();
     bindKeys();
     bindIdle();
+    bindSwipe();
+    syncLayoutBehaviour();
     render();
 
     // After the first screen is on the glass, not before.

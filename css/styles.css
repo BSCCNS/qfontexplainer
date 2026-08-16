@@ -54,7 +54,13 @@
   --fs-title: 48px;
   --fs-body: 30px;
   --fs-label: 24px;
-  --lh-body: 36px;
+  /*
+   * 30px, not a looser guess: Figma sets every text style to the font's
+   * intrinsic line height, which for Obvia Narrow is a 1.0 ratio. Using 36px
+   * made every paragraph 20% taller than the design and pushed slide 1's body
+   * into the illustration.
+   */
+  --lh-body: 30px;
 
   /* Canvas */
   --canvas-w: 2227.5px;
@@ -144,18 +150,32 @@ button {
   transform-origin: center center;
 }
 
-/* Every screen stacks in the same place; only one is visible at a time. */
+/*
+ * Every screen stacks in the same place; only one is visible at a time.
+ * The fade is an animation rather than a transition: a transition needs the
+ * element to exist for a frame in its start state, which meant waiting for
+ * requestAnimationFrame — and that does not fire in a background tab.
+ */
 .screen {
   position: absolute;
   inset: 0;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 320ms ease;
 }
 
 .screen.is-active {
   opacity: 1;
   visibility: visible;
+  animation: qc-screen-fade 320ms ease both;
+}
+
+@keyframes qc-screen-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen.is-active { animation: none; }
 }
 
 /* ------------------------------------------------------------------ */
@@ -232,7 +252,8 @@ button {
   position: absolute;
   left: var(--margin-x);
   top: 856px;
-  width: 640px;
+  /* 620px on every slide but the first, which the design sets wider. */
+  width: 620px;
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   color: var(--c-white);
@@ -266,6 +287,9 @@ button {
   height: 1500.1px;
 }
 
+/* Slide 1 carries the longest copy and is given a wider column for it. */
+.slide--1 .slide__body { width: 680px; }
+
 /* Two slides sit slightly off the common position in the design. */
 .slide--words .slide__figure { left: 355.6px; top: 1344.9px; }
 .slide--6 .slide__figure     { left: 362px;   top: 1377px; }
@@ -275,8 +299,12 @@ button {
   height: 100%;
 }
 
-/* Callout labels over the illustration. Positions are relative to .stage,
-   taken from the Figma text nodes. */
+/*
+ * Callout labels and the cat now live INSIDE .slide__figure and are positioned
+ * by percentage (set in app.js), so the whole scene scales as one unit. The
+ * percentages were derived from the design coordinates, so the kiosk renders
+ * exactly as before.
+ */
 .scene-label {
   position: absolute;
   font-size: var(--fs-label);
@@ -288,36 +316,20 @@ button {
   color: var(--c-white);
 }
 
-/*
- * Slide 5's apparatus sits ~6px left and ~11px up from slide 1's, so its
- * labels are offset to match rather than sharing one set of coordinates.
- */
-.scene-label--source   { left: 241px;    top: 2884.7px; }
-.scene-label--barrier  { left: 711.8px;  top: 2564.7px; }
-.scene-label--slit-1   { left: 910.8px;  top: 2036.1px; }
-.scene-label--slit-2   { left: 1099.2px; top: 2141px; }
-.scene-label--screen   { left: 1289.9px; top: 1939.5px; }
+/* Numbered markers are a small-screen affordance; the kiosk shows the words. */
+.scene-label__marker { display: none; }
 
-.slide--words .scene-label--source   { left: 235px;    top: 2873.7px; }
-.slide--words .scene-label--barrier  { left: 705.8px;  top: 2553.7px; }
-.slide--words .scene-label--slit-1   { left: 904.8px;  top: 2025.1px; }
-.slide--words .scene-label--slit-2   { left: 1093.2px; top: 2130px; }
-.slide--words .scene-label--screen   { left: 1283.9px; top: 1928.5px; }
+/* The legend that decodes those markers is likewise small-screen only. */
+.scene-legend { display: none; }
 
-/*
- * The cat wanders through the scene on the first two slides — a different
- * position on each, so it reads as having moved between them.
- */
+/* 109.4 x 83.8 design px expressed against the 1626.2 x 1500.1 scene. */
 .slide__cat {
   position: absolute;
-  width: 109.4px;
-  height: 83.8px;
+  width: 6.73%;
+  height: 5.59%;
 }
 
 .slide__cat img { width: 100%; height: 100%; }
-
-.slide--cat-1 .slide__cat { left: 615px; top: 1958px; }
-.slide--cat-2 .slide__cat { left: 270px; top: 2790px; }
 
 /* ------------------------------------------------------------------ */
 /* Prev / next chevrons                                               */

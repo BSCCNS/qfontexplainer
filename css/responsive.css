@@ -1,0 +1,533 @@
+/*
+ * Quantum Compass — fluid layout
+ * ------------------------------
+ * The layout for phones, tablets and landscape desktop. The kiosk keeps its
+ * own pixel-faithful layout in styles.css; everything here is scoped under
+ * `.layout-fluid`, which app.js puts on <body> for every display that is not
+ * the installation panel. Nothing in this file can affect the kiosk.
+ *
+ * Load order matters: this file comes after styles.css and undoes the fixed
+ * canvas before rebuilding the page as normal document flow.
+ *
+ * Type and spacing scale with the viewport through clamp(), so there are only
+ * two real breakpoints — one where the slide splits into two columns, and one
+ * where the scene labels give way to numbered markers and a legend.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Undo the fixed canvas                                              */
+/* ------------------------------------------------------------------ */
+/*
+ * The kiosk pins <html> and <body> to the viewport so nothing can scroll. The
+ * fluid layout is a normal scrolling document, so both have to be released —
+ * hence the layout class living on <html> as well as <body>.
+ */
+/*
+ * Only <html> scrolls. <body> must be released from the kiosk's height/overflow
+ * lock but must NOT become a scroll container itself: `overflow-y: auto` here
+ * makes body its own scroller, and since body is exactly as tall as its content
+ * it has nothing to scroll — so the wheel lands on a dead scroller instead of
+ * chaining to the document. The page then scrolls by dragging the scrollbar but
+ * not by wheeling over the content, which is what happened.
+ */
+html.layout-fluid {
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.layout-fluid body {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.layout-fluid .viewport {
+  position: static;
+  overflow: visible;
+}
+
+/* The stage stops being a scaled 2228 x 3960 canvas and becomes the page. */
+.layout-fluid .stage {
+  position: static;
+  width: 100%;
+  height: auto;
+  transform: none;
+}
+
+/* Screens stack in flow; only the active one is in the document. */
+.layout-fluid .screen {
+  position: static;
+  display: none;
+  opacity: 1;
+  visibility: visible;
+  /* min-height, not height: a screen taller than the window must grow and
+     scroll rather than clip. */
+  min-height: 100svh;
+  height: auto;
+  padding: var(--pad-y) var(--pad-x) calc(var(--pad-y) + 5rem);
+}
+
+.layout-fluid .screen.is-active {
+  display: grid;
+  /*
+   * minmax(0, 1fr) rather than the default `auto`: grid tracks are sized to
+   * their content by default and will not shrink below it, so a long line of
+   * text pushes the track — and the page — wider than the viewport. Pinning
+   * the floor at 0 lets the track shrink and the text wrap instead.
+   */
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--gap);
+  animation: qc-fade 320ms ease both;
+}
+
+@keyframes qc-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout-fluid .screen.is-active { animation: none; }
+}
+
+/* Everything the kiosk positions absolutely returns to normal flow. */
+.layout-fluid .logo,
+.layout-fluid .langbar,
+.layout-fluid .slide__title,
+.layout-fluid .slide__body,
+.layout-fluid .slide__figure,
+.layout-fluid .scene-legend,
+.layout-fluid .home__block,
+.layout-fluid .home__video,
+.layout-fluid .home__prompt,
+.layout-fluid .home__actions,
+.layout-fluid .about__section,
+.layout-fluid .about__footer,
+.layout-fluid .nav-arrow {
+  position: static;
+  left: auto;
+  top: auto;
+  width: auto;
+  height: auto;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Fluid scale                                                        */
+/* ------------------------------------------------------------------ */
+.layout-fluid {
+  /*
+   * One scale for the whole site. The clamp midpoints are in vw so type grows
+   * with the window, but both ends are pinned so it never becomes unreadable
+   * on a phone or absurd on a 4K monitor.
+   */
+  --fs-title: clamp(1.5rem, 1.1rem + 2vw, 2.75rem);
+  --fs-body: clamp(1rem, 0.95rem + 0.4vw, 1.25rem);
+  --fs-label: clamp(0.625rem, 0.55rem + 0.3vw, 0.8rem);
+  --lh-body: 1.55;
+
+  --pad-x: clamp(1.25rem, 0.5rem + 4vw, 5rem);
+  --pad-y: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+  --gap: clamp(1.75rem, 1rem + 3vw, 3rem);
+
+  /*
+   * Keeps long-form copy at a comfortable measure regardless of window size.
+   * Capped at 100% so it can never be the cause of horizontal overflow.
+   */
+  --measure: min(62ch, 100%);
+}
+
+.layout-fluid body,
+.layout-fluid .screen {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* Long-form text should be selectable on a website, unlike on the kiosk. */
+.layout-fluid {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header                                                             */
+/* ------------------------------------------------------------------ */
+.layout-fluid .screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.layout-fluid .logo {
+  width: clamp(2.75rem, 2rem + 2vw, 3.75rem);
+  aspect-ratio: 1;
+  flex: none;
+  padding: 0;
+}
+
+.layout-fluid .logo img { width: 100%; height: 100%; }
+
+.layout-fluid .langbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.layout-fluid .lang {
+  width: auto;
+  height: auto;
+  padding: 0.45em 1.1em;
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Slides                                                             */
+/* ------------------------------------------------------------------ */
+.layout-fluid .slide__title {
+  font-size: var(--fs-title);
+  line-height: 1.1;
+  max-width: min(20ch, 100%);
+  margin-bottom: 0.75em;
+}
+
+.layout-fluid .slide__body {
+  max-width: var(--measure);
+}
+
+.layout-fluid .slide__body p + p {
+  margin-top: 1em;
+}
+
+/*
+ * The scene keeps the aspect ratio it has in the design, so the labels — which
+ * are positioned as percentages of this box — stay pinned to the right parts
+ * of the drawing at any size.
+ */
+.layout-fluid .slide__figure {
+  position: relative;
+  width: 100%;
+  max-width: 46rem;
+  aspect-ratio: 1626.2 / 1500.1;
+  margin-inline: auto;
+}
+
+.layout-fluid .slide__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* The cat keeps its proportion of the scene. */
+.layout-fluid .slide__cat { position: absolute; }
+
+/* Nav arrows become a row under the content rather than floating chevrons. */
+.layout-fluid .nav-arrow {
+  width: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  height: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.layout-fluid .nav-arrow img {
+  width: 38%;
+  height: 38%;
+  object-fit: contain;
+}
+
+.layout-fluid .nav-arrow--prev { transform: scaleX(-1); }
+
+/* Arrows anchor to the bottom corners of the screen. */
+.layout-fluid .screen.is-active {
+  position: relative;
+}
+
+.layout-fluid .nav-arrow {
+  position: absolute;
+  bottom: var(--pad-y);
+}
+
+.layout-fluid .nav-arrow--prev { left: var(--pad-x); }
+.layout-fluid .nav-arrow--next { right: var(--pad-x); }
+
+/* ------------------------------------------------------------------ */
+/* Scene labels: words on larger screens, numbers on small ones       */
+/* ------------------------------------------------------------------ */
+.layout-fluid .scene-label {
+  font-size: var(--fs-label);
+  transform: translate(-0.25em, -0.5em);
+}
+
+.layout-fluid .scene-label__marker {
+  display: grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  font-size: max(0.7rem, var(--fs-label));
+  border-radius: 999px;
+  background: var(--c-white);
+  color: var(--c-black);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.layout-fluid .scene-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: scene;
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-grey);
+}
+
+.layout-fluid .scene-legend li {
+  counter-increment: scene;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.layout-fluid .scene-legend li::before {
+  content: counter(scene);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 999px;
+  background: var(--c-white);
+  color: var(--c-black);
+  letter-spacing: 0;
+}
+
+/*
+ * Below this width the words on the drawing would render under ~10px, which is
+ * past reading size, so the drawing carries numbers instead and the legend
+ * underneath decodes them. Above it, the words sit on the drawing as designed
+ * and the legend is redundant.
+ */
+@media (min-width: 60rem) {
+  .layout-fluid .scene-legend { display: none; }
+  .layout-fluid .scene-label__marker { display: none; }
+}
+
+@media (max-width: 59.99rem) {
+  .layout-fluid .scene-label__text { display: none; }
+
+  /*
+   * One label ("light source") sits just outside the drawing box — at -7.2%
+   * horizontally and 101.5% vertically. On the kiosk the surrounding canvas
+   * gives it room; here the drawing would run to the screen edge and clip it.
+   * Insetting the scene leaves exactly that margin free.
+   */
+  .layout-fluid .slide__figure {
+    width: 86%;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Home                                                               */
+/* ------------------------------------------------------------------ */
+.layout-fluid .home__block h2 {
+  font-size: var(--fs-title);
+  line-height: 1.1;
+  margin-bottom: 0.6em;
+}
+
+.layout-fluid .home__block {
+  max-width: var(--measure);
+}
+
+.layout-fluid .home__block p + p { margin-top: 1em; }
+
+.layout-fluid .home__video {
+  aspect-ratio: 850 / 412;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+  background: #0d0d0d;
+  display: grid;
+  place-items: center;
+}
+
+.layout-fluid .home__video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.layout-fluid .home__video-placeholder {
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-grey);
+  text-align: center;
+}
+
+.layout-fluid .home__prompt {
+  text-align: center;
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+
+.layout-fluid .home__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.layout-fluid .btn {
+  width: auto;
+  height: auto;
+  min-height: 3rem;
+  padding: 0.85em 2em;
+  font-size: var(--fs-body);
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------------ */
+/* About                                                              */
+/* ------------------------------------------------------------------ */
+.layout-fluid .about__section {
+  max-width: var(--measure);
+}
+
+.layout-fluid .about__section h2 {
+  font-size: var(--fs-title);
+  line-height: 1.15;
+  margin-bottom: 0.6em;
+}
+
+.layout-fluid .about__section p + p { margin-top: 1em; }
+
+.layout-fluid .about__mark {
+  width: clamp(3rem, 2rem + 4vw, 5rem);
+  height: auto;
+  margin-inline: auto;
+}
+
+.layout-fluid .about__footer {
+  width: min(100%, 26rem);
+  height: auto;
+  margin-inline: auto;
+  margin-top: 1rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Two columns once there is room                                     */
+/* ------------------------------------------------------------------ */
+@media (min-width: 60rem) {
+  /*
+   * Landscape and desktop: the slide splits — reading on the left, the drawing
+   * on the right — which suits a wide window far better than stacking, and
+   * keeps both legible without scrolling.
+   */
+  .layout-fluid .screen--slide.is-active {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: center;
+    column-gap: var(--gap);
+  }
+
+  .layout-fluid .screen--slide .screen__header { grid-column: 1 / -1; }
+  .layout-fluid .screen--slide .slide__text { grid-column: 1; }
+  .layout-fluid .screen--slide .slide__figure { grid-column: 2; max-width: none; }
+
+  /* Home reads as two columns of editorial text with the videos side by side. */
+  .layout-fluid .home__blocks,
+  .layout-fluid .home__videos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Group wrappers only exist in the fluid layout; the kiosk positions each
+   child absolutely and ignores them. */
+.layout-fluid .home__blocks,
+.layout-fluid .home__videos {
+  display: grid;
+  gap: var(--gap);
+}
+
+/* ------------------------------------------------------------------ */
+/* Very small screens                                                 */
+/* ------------------------------------------------------------------ */
+@media (max-width: 30rem) {
+  .layout-fluid .screen {
+    padding-bottom: calc(var(--pad-y) + 4.5rem);
+  }
+
+  /* Give the thumb a comfortable target at the bottom of the screen. */
+  .layout-fluid .nav-arrow {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+/*
+ * Landscape on a phone: wide but very short. Stacking would push the drawing
+ * off the bottom, so split into columns here too even though the window is
+ * narrower than the desktop breakpoint — height is the scarce dimension, not
+ * width. The scene stays small at this size, so it keeps the numbered markers.
+ */
+@media (orientation: landscape) and (max-height: 34rem) and (min-width: 44rem) {
+  .layout-fluid {
+    --pad-y: 0.9rem;
+    --gap: 1.25rem;
+    /* Wide enough that the arrows, which sit in the side margins here, do not
+       overlap the text. */
+    --pad-x: 3.9rem;
+  }
+
+  .layout-fluid .screen {
+    min-height: 100svh;
+    padding-bottom: var(--pad-y);
+  }
+
+  .layout-fluid .screen--slide.is-active {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+    align-items: center;
+    column-gap: var(--gap);
+  }
+
+  .layout-fluid .screen--slide .screen__header { grid-column: 1 / -1; }
+  .layout-fluid .screen--slide .slide__text { grid-column: 1; }
+
+  .layout-fluid .screen--slide .slide__figure {
+    grid-column: 2;
+    grid-row: span 2;
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+  }
+
+  /* The legend would eat the little height there is. */
+  .layout-fluid .screen--slide .scene-legend { display: none; }
+
+  /* Arrows tuck into the middle margins rather than the bottom corners. */
+  .layout-fluid .nav-arrow {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .layout-fluid .nav-arrow--prev {
+    left: 0.35rem;
+    transform: translateY(-50%) scaleX(-1);
+  }
+
+  .layout-fluid .nav-arrow--next { right: 0.35rem; }
+}

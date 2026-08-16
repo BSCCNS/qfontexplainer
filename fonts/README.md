@@ -1,33 +1,51 @@
 # Fonts
 
-The design specifies **Obvia Narrow** (Light and Book) with **TT Modernoir**
-for display use.
+**Supplied and wired up.** The site uses the licensed Obvia Narrow.
 
-`css/styles.css` already has `@font-face` rules pointing at:
+| File | Weight | Used for |
+|---|---|---|
+| `ObviaNarrow-Light.woff2` | 300 | body copy |
+| `ObviaNarrow-Book.woff2` | 400 | headings, buttons, labels |
 
-- `ObviaNarrow-Light.woff2`  (weight 300)
-- `ObviaNarrow-Book.woff2`   (weight 400)
+The `.otf` files are the originals as delivered; the `.woff2` are converted from
+them and are what the browser loads. woff2 is about 40% smaller and is the only
+format the CSS references — keep the originals, but the site does not read them.
 
-Drop those two files in this folder and the site picks them up with no other
-change. Until then it falls back to a condensed grotesque stack, which is
-close in proportion but not the real typeface.
+To regenerate the woff2 after replacing an original, with `fonttools` installed:
 
-## Important: an Adobe Fonts licence may not cover this
+    python3 -c "
+    from fontTools.ttLib import TTFont
+    for src, dst in [('Obvia_Narrow_Light.otf', 'ObviaNarrow-Light.woff2'),
+                     ('obvia-narrow.otf',       'ObviaNarrow-Book.woff2')]:
+        f = TTFont(src); f.flavor = 'woff2'; f.save(dst)
+    "
 
-Adobe Fonts works two ways, and only one of them helps here:
+Both faces cover every accented character the Spanish, Catalan and English copy
+needs, including Catalan's `l·l` and `à` / `è` / `ò`.
 
-- **Desktop sync** — lets you use the font in Figma, Illustrator, etc. It does
-  **not** grant the right to convert the font to `.woff2` and self-host it.
-- **Web project** — gives you an embed code that loads the font from
-  `use.typekit.net`. This is licensed for web use, **but it requires a live
-  internet connection every time the page loads.**
+## The trap when testing
 
-An offline kiosk therefore satisfies neither path cleanly:
+If Obvia Narrow is installed on your Mac — likely, since it is a licensed
+desktop font the designers use — the browser resolves the family from the system
+even when the `@font-face` files are missing or broken. The site then looks
+completely correct on your machine and wrong on the Pi, which has no such
+fallback.
 
-| Situation | What to do |
-|---|---|
-| Pi has reliable internet | Use an Adobe Fonts web project; add its `<link>` to `index.html` |
-| Pi is offline | You need a licence that permits self-hosting — buy the webfont from the foundry (TypeType for TT Modernoir; Obvia via its foundry) |
+`tools/smoke-test.py` checks the actual `FontFace` load status rather than
+appearance, which is the only reliable way to catch this. Run it before
+deploying.
 
-Check this before the installation ships. It is the one part of the build that
-cannot be fixed on site.
+## Line height
+
+Figma sets every text style to the font's *intrinsic* line height, which for
+Obvia Narrow is a 1.0 ratio — 30px at 30px, 48px at 48px. `--lh-body` in
+`css/styles.css` matches that. It is not an arbitrary choice: a looser value
+makes every paragraph taller than the design and pushes slide 1's body into the
+illustration.
+
+## TT Modernoir
+
+The style guide also lists TT Modernoir for display use. Nothing in the built
+screens currently calls for it — the titles use Obvia Narrow Book, which is what
+the Figma frames actually specify. If a screen is added that needs it, the same
+`@font-face` pattern applies.

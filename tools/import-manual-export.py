@@ -200,6 +200,13 @@ def main():
 
         print("  %s  <-  %s" % (dest.relative_to(ROOT), f["path"].name))
 
+    # Figma embeds bitmaps at full resolution; shrink them before the animation
+    # is applied, so the animation lands on the final bytes.
+    optimiser = ROOT / "tools" / "optimise-illustrations.py"
+    if optimiser.exists():
+        print("\nOptimising embedded bitmaps...")
+        subprocess.run([sys.executable, str(optimiser)], check=False)
+
     # Wavefront animation lives outside the exported files, so re-apply it.
     animator = ROOT / "tools" / "animate-illustrations.py"
     if animator.exists():

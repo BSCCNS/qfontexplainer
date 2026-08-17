@@ -162,7 +162,7 @@ html.layout-fluid {
 }
 
 .layout-fluid .logo {
-  width: clamp(2.75rem, 2rem + 2vw, 3.75rem);
+  width: clamp(3rem, 2.25rem + 2.2vw, 4.25rem);
   aspect-ratio: 1;
   flex: none;
   padding: 0;
@@ -226,19 +226,22 @@ html.layout-fluid {
 /* The cat keeps its proportion of the scene. */
 .layout-fluid .slide__cat { position: absolute; }
 
-/* Nav arrows become a row under the content rather than floating chevrons. */
+/*
+ * A bare chevron, as in the design — no enclosing circle, and sized so the
+ * glyph itself is the target rather than a small mark inside a large box.
+ * The chevron artwork is tall and narrow (146 x 282), so height drives it and
+ * the width follows.
+ */
 .layout-fluid .nav-arrow {
-  width: clamp(2.5rem, 2rem + 2vw, 3.5rem);
-  height: clamp(2.5rem, 2rem + 2vw, 3.5rem);
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  width: auto;
+  height: clamp(2.25rem, 1.5rem + 2.5vw, 3.25rem);
+  padding: 0.5rem;
+  display: block;
 }
 
 .layout-fluid .nav-arrow img {
-  width: 38%;
-  height: 38%;
+  width: auto;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -497,9 +500,15 @@ html.layout-fluid {
     padding-bottom: var(--pad-y);
   }
 
+  /*
+   * The drawing is sized from the available HEIGHT here, not the width. Sized
+   * from width it grew taller than the viewport and dropped below the fold —
+   * the reader saw text and had to scroll to find the illustration at all.
+   * The column is `auto` so it takes whatever width the aspect ratio implies.
+   */
   .layout-fluid .screen--slide.is-active {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     column-gap: var(--gap);
   }
 
@@ -509,13 +518,21 @@ html.layout-fluid {
   .layout-fluid .screen--slide .slide__figure {
     grid-column: 2;
     grid-row: span 2;
-    width: 100%;
-    max-width: none;
-    margin-bottom: 0;
+    height: min(72svh, 26rem);
+    width: auto;
+    max-width: 55vw;
+    margin: 0;
   }
 
-  /* The legend would eat the little height there is. */
-  .layout-fluid .screen--slide .scene-legend { display: none; }
+  /*
+   * The legend stays. Hiding it to save height left numbered markers on the
+   * drawing with nothing to decode them, which is worse than either showing
+   * both or showing neither. It sits under the text and scrolls with it.
+   */
+  .layout-fluid .screen--slide .scene-legend {
+    grid-column: 1;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  }
 
   /* Arrows tuck into the middle margins rather than the bottom corners. */
   .layout-fluid .nav-arrow {

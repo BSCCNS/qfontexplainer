@@ -1,10 +1,10 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="123.84" height="123.84" viewBox="0 0 123.84 123.84" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Group">
-<path id="Vector" d="M61.9202 123.34C95.8415 123.34 123.34 95.8413 123.34 61.92C123.34 27.9987 95.8415 0.5 61.9202 0.5C27.9988 0.5 0.5 27.9987 0.5 61.92C0.5 95.8413 27.9988 123.34 61.9202 123.34Z" stroke="white" stroke-miterlimit="10"/>
-<path id="Vector_2" d="M84.0801 27.13H39.76V96.71H84.0801V27.13Z" stroke="white" stroke-miterlimit="10"/>
+<path id="Vector" d="M61.9202 123.34C95.8415 123.34 123.34 95.8413 123.34 61.92C123.34 27.9987 95.8415 0.5 61.9202 0.5C27.9988 0.5 0.5 27.9987 0.5 61.92C0.5 95.8413 27.9988 123.34 61.9202 123.34Z" stroke="white" stroke-miterlimit="10" vector-effect="non-scaling-stroke"/>
+<path id="Vector_2" d="M84.0801 27.13H39.76V96.71H84.0801V27.13Z" stroke="white" stroke-miterlimit="10" vector-effect="non-scaling-stroke"/>
 <g id="Group_2">
-<path id="Vector_3" d="M61.9202 61.92H22.4502" stroke="white" stroke-miterlimit="10"/>
-<path id="Vector_4" d="M25.77 57.83L26.4502 58.56L22.8401 61.92L26.4502 65.27L25.77 66.01L21.3701 61.92L25.77 57.83Z" fill="white"/>
+<path id="Vector_3" d="M61.9202 61.92H22.4502" stroke="white" stroke-miterlimit="10" vector-effect="non-scaling-stroke"/>
+<path id="Vector_4" d="M25.77 57.83L26.4502 58.56L22.8401 61.92L26.4502 65.27L25.77 66.01L21.3701 61.92L25.77 57.83Z" fill="white" vector-effect="non-scaling-stroke"/>
 </g>
 </g>
 </svg>

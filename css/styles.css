@@ -290,7 +290,8 @@ button {
 /* Slide 1 carries the longest copy and is given a wider column for it. */
 .slide--1 .slide__body { width: 680px; }
 
-/* Two slides sit slightly off the common position in the design. */
+/* Three slides sit slightly off the common position in the design. */
+.slide--1 .slide__figure     { left: 361.6px; top: 1355.9px; }
 .slide--words .slide__figure { left: 355.6px; top: 1344.9px; }
 .slide--6 .slide__figure     { left: 362px;   top: 1377px; }
 

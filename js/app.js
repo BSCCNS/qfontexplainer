@@ -230,7 +230,7 @@
 
   // Where the cat stands on the slides that carry it, as a percentage of the
   // illustration box (slide index -> position).
-  var CAT_SPOTS = { 0: { left: 15.8, top: 39.7 }, 1: { left: -5.4, top: 95.2 } };
+  var CAT_SPOTS = { 0: { left: 15.58, top: 40.14 }, 1: { left: -5.42, top: 95.2 } };
 
   function buildScene(screen, figure, index) {
     var spot = CAT_SPOTS[index];

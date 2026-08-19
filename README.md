@@ -108,11 +108,18 @@ sit alongside the Spanish and would silently go stale.
 
 Open `index.html` in a browser. That is the whole procedure.
 
-For development, any static server works if you prefer one:
+For development over HTTP:
 
 ```sh
-python3 -m http.server 8777    # then visit http://localhost:8777
+./tools/serve.py               # http://localhost:8000
 ```
+
+Use this rather than `python3 -m http.server`. The standard library's handler
+ignores `Range` requests, and Chrome's media pipeline needs them: videos stall
+at `readyState 0` with **no error event**, which looks exactly like a broken
+file. `tools/serve.py` implements ranges, is threaded, and sends `no-store` so
+edits are not masked by a cached `app.js`. The kiosk needs none of this —
+`file://` supports ranges natively.
 
 **Keyboard shortcuts** (for reviewing on a laptop, and for a presenter remote):
 `←` / `→` step through slides, `Esc` returns to the home screen.

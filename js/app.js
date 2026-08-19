@@ -328,14 +328,34 @@
       screen.appendChild(block);
     });
 
-    // The mark sits between the BSC section and the credits. The kiosk places
-    // it absolutely so order is immaterial there, but the fluid layout lays
-    // these out in flow — so it has to be appended in the right place.
-    var mark = img('assets/about-mark.svg');
-    mark.className = 'about__mark';
-    mark.addEventListener('error', function () {
-      mark.remove();
+    /*
+     * The cat crosses between the BSC section and the credits. The kiosk places
+     * this absolutely so order is immaterial there, but the fluid layout lays
+     * these out in flow — so it has to be appended in the right place.
+     *
+     * It loops: the clip opens and closes on an empty frame, so looping gives a
+     * natural pause between crossings. Playing once would leave an empty strip
+     * where the cat used to be.
+     */
+    var mark = el('div', 'about__mark');
+    var cat = document.createElement('video');
+    cat.className = 'about__cat';
+    cat.src = 'assets/video/cat.mp4';
+    cat.muted = true;
+    cat.loop = true;
+    cat.autoplay = true;
+    cat.playsInline = true;
+    cat.setAttribute('aria-hidden', 'true');
+    // Falls back to the still drawing if the clip is missing or will not decode.
+    cat.addEventListener('error', function () {
+      var still = img('assets/about-mark.svg');
+      still.className = 'about__mark-still';
+      still.addEventListener('error', function () {
+        mark.remove();
+      });
+      mark.replaceChildren(still);
     });
+    mark.appendChild(cat);
     screen.appendChild(mark);
 
     var credits = el('section', 'about__section about__credits');

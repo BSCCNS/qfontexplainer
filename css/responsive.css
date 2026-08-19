@@ -432,9 +432,14 @@ html.layout-fluid {
 
 .layout-fluid .about__section p + p { margin-top: 1em; }
 
-/* Sits between the BSC section and the credits, centred like the text. */
+/*
+ * Sits between the BSC section and the credits, spanning the same width as the
+ * text so the cat enters and exits on the reading margins.
+ */
 .layout-fluid .about__mark {
-  width: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+  width: 100%;
+  max-width: var(--measure);
+  aspect-ratio: 800 / 286;
   height: auto;
   margin-inline: auto;
 }

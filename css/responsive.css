@@ -103,6 +103,7 @@ html.layout-fluid {
 .layout-fluid .home__prompt,
 .layout-fluid .home__actions,
 .layout-fluid .about__section,
+.layout-fluid .about__mark,
 .layout-fluid .about__footer,
 .layout-fluid .nav-arrow {
   position: static;
@@ -412,8 +413,15 @@ html.layout-fluid {
 /* ------------------------------------------------------------------ */
 /* About                                                              */
 /* ------------------------------------------------------------------ */
+/*
+ * The About screen is a single column of long-form text, so it is centred
+ * rather than pinned to the left margin — matching the design, where the
+ * 1000px block sits roughly centred on the 2228px canvas. Without this it
+ * hugged the left edge on a wide window.
+ */
 .layout-fluid .about__section {
   max-width: var(--measure);
+  margin-inline: auto;
 }
 
 .layout-fluid .about__section h2 {
@@ -424,8 +432,9 @@ html.layout-fluid {
 
 .layout-fluid .about__section p + p { margin-top: 1em; }
 
+/* Sits between the BSC section and the credits, centred like the text. */
 .layout-fluid .about__mark {
-  width: clamp(3rem, 2rem + 4vw, 5rem);
+  width: clamp(3.5rem, 2.5rem + 4vw, 6rem);
   height: auto;
   margin-inline: auto;
 }

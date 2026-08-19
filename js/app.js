@@ -328,20 +328,20 @@
       screen.appendChild(block);
     });
 
-    var credits = el('section', 'about__section about__credits');
-    credits.appendChild(el('h2', null, copy.creditsTitle));
-    credits.appendChild(el('p', null, copy.credits));
-    screen.appendChild(credits);
-
-    // Small drawn mark that sits between the credits and the footer. Not yet
-    // exported from Figma (node 983:989) — hidden until the file exists so it
-    // never shows a broken image on the kiosk.
+    // The mark sits between the BSC section and the credits. The kiosk places
+    // it absolutely so order is immaterial there, but the fluid layout lays
+    // these out in flow — so it has to be appended in the right place.
     var mark = img('assets/about-mark.svg');
     mark.className = 'about__mark';
     mark.addEventListener('error', function () {
       mark.remove();
     });
     screen.appendChild(mark);
+
+    var credits = el('section', 'about__section about__credits');
+    credits.appendChild(el('h2', null, copy.creditsTitle));
+    credits.appendChild(el('p', null, copy.credits));
+    screen.appendChild(credits);
 
     // Institutional lockup, exported from Figma as a single asset.
     var footer = img('assets/logos-lockup.svg', 'Creative Intelligence Lab · Barcelona Supercomputing Center');

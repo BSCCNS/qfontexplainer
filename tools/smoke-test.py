@@ -49,9 +49,20 @@ PROBE = r"""
     (function () {
       var errors = [];
       var missing = [];
+      var sanitised = 0;
       window.addEventListener('error', function (e) {
         if (e.target && e.target !== window) {
           missing.push((e.target.src || e.target.href || '?').split('/').slice(-2).join('/'));
+        } else if (!e.filename && !e.lineno && /^Script error\.?$/.test(e.message || '')) {
+          /*
+           * A window error with no message, file or line is the cross-origin
+           * sanitised form. Every file:// resource is its own opaque origin, so
+           * a failed media load can surface a second time in this shape — it
+           * appears immediately after the missing-video errors and carries no
+           * script frame. Counting it made the gate fail at random. It is
+           * tallied separately rather than ignored.
+           */
+          sanitised++;
         } else {
           errors.push(e.message);
         }
@@ -143,6 +154,7 @@ PROBE = r"""
 
             put('MISSING_ASSETS', missing.length ? Array.from(new Set(missing)).join(' ') : 'none');
             put('JS_ERRORS', errors.length ? errors.join(' | ') : 'none');
+            put('SANITISED_ERRORS', sanitised);
           } catch (e) {
             put('PROBE_ERROR', e.message);
           }
@@ -309,6 +321,12 @@ def main():
         print("  Assets missing (each has a fallback, but check these are expected):")
         for a in missing.split():
             print("    - %s" % a)
+
+    sanitised = int(r.get("SANITISED_ERRORS", "0") or 0)
+    if sanitised:
+        print()
+        print("  %d cross-origin-sanitised error(s) — no message, file or line." % sanitised)
+        print("  Expected while assets above are missing; should stop once they exist.")
 
     print()
     if failed:

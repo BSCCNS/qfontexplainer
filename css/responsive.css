@@ -170,11 +170,17 @@ html.layout-fluid {
 
 .layout-fluid .logo img { width: 100%; height: 100%; }
 
+/*
+ * margin-inline-start keeps the pills at the right edge whether or not the
+ * header also contains the logo — the home screen omits it, and
+ * space-between alone would pull them left there.
+ */
 .layout-fluid .langbar {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
+  margin-inline-start: auto;
 }
 
 .layout-fluid .lang {

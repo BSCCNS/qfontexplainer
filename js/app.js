@@ -112,19 +112,22 @@
    * kiosk: its children are absolutely positioned against the screen, and a
    * static wrapper does not become their containing block.
    */
-  function buildHeader(screen) {
+  function buildHeader(screen, withHomeButton) {
     var header = el('header', 'screen__header');
 
-    // The logo doubles as the home button on every screen — it is the one
-    // control a visitor can rely on being in the same place throughout.
-    var home = el('button', 'logo');
-    home.type = 'button';
-    home.setAttribute('aria-label', 'Quantum Compass — home');
-    home.appendChild(img('assets/logo.svg', 'Quantum Compass'));
-    home.addEventListener('click', function () {
-      go('home');
-    });
-    header.appendChild(home);
+    // The logo doubles as the home button — the one control a visitor can rely
+    // on being in the same place throughout. It is omitted on the home screen
+    // itself, where it would lead nowhere.
+    if (withHomeButton !== false) {
+      var home = el('button', 'logo');
+      home.type = 'button';
+      home.setAttribute('aria-label', 'Quantum Compass — home');
+      home.appendChild(img('assets/logo.svg', 'Quantum Compass'));
+      home.addEventListener('click', function () {
+        go('home');
+      });
+      header.appendChild(home);
+    }
 
     var bar = el('div', 'langbar');
     window.CONTENT.languages.forEach(function (lang) {
@@ -157,7 +160,7 @@
   function buildHome() {
     var copy = t().home;
     var screen = el('section', 'screen screen--home');
-    buildHeader(screen);
+    buildHeader(screen, false);
 
     var blocks = el('div', 'home__blocks');
     copy.blocks.forEach(function (block, i) {
